@@ -58,7 +58,7 @@ classdef ParaviewPostprocessor < handle
         function writeConnec(obj)
             nelems = size(obj.connec,1);
             nnodEl = size(obj.connec,2);
-            ndata = nelems * 4;
+            ndata = nelems * (nnodEl+1);
             headCells = '\nCELLS %d %d\n';
             fprintf(obj.outputFile, headCells, nelems, ndata);
             connecP = [nnodEl*ones(nelems,1), obj.connec-1];
