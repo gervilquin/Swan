@@ -10,6 +10,7 @@ classdef ParaviewPostprocessor < handle
         connec
         filename
         outputFile
+        d_u
     end
     
     methods (Access = public)
@@ -33,6 +34,7 @@ classdef ParaviewPostprocessor < handle
             obj.coord    = cParams.mesh.coord;
             obj.connec   = cParams.mesh.connec;
             obj.filename = cParams.filename;
+            obj.d_u = cParams.d_u;
         end
         
         function openFile(obj)
@@ -72,6 +74,15 @@ classdef ParaviewPostprocessor < handle
         end
         
         function writeData(obj)
+            headPointData = '\n\nPOINT_DATA %d\n';
+            headScalars = '\nSCALARS d_u float 3';
+            headLookupT = '\nLOOKUP_TABLE default\n';
+            nnodes = size(obj.coord,1);
+%             ndofs = size(obj.d_u, 1);
+            fprintf(obj.outputFile, headPointData, nnodes);
+            fprintf(obj.outputFile, headScalars);
+            fprintf(obj.outputFile, headLookupT);
+            fprintf(obj.outputFile, '%f ', obj.d_u');
         end
         
         function saveFile(obj)
