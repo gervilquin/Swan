@@ -1,4 +1,8 @@
-classdef ParaviewPostprocessor < handle
+classdef ParaviewLegacyPostprocessor < handle
+    
+    % Its output is a legacy .vtk file. It works for simple fields, but it
+    % cannot represent data at Gaussian points, as it requires the newer
+    % XML implementation.
     
     properties (Access = public)
         
@@ -15,7 +19,7 @@ classdef ParaviewPostprocessor < handle
     
     methods (Access = public)
         
-        function obj = ParaviewPostprocessor(cParams)
+        function obj = ParaviewLegacyPostprocessor(cParams)
             obj.init(cParams);
             obj.openFile();
             obj.writeHeader();
