@@ -1,8 +1,7 @@
 classdef ParaviewPostprocessor < handle
     
-    % Its output is a legacy .vtk file. It works for simple fields, but it
-    % cannot represent data at Gaussian points, as it requires the newer
-    % XML implementation.
+    % Its output is a legacy .vtu file. It can represent both simple
+    % fields and data at Gaussian points.
     
     properties (Access = public)
         
@@ -23,9 +22,9 @@ classdef ParaviewPostprocessor < handle
             obj.init(cParams);
             obj.openFile();
             obj.createPiece();
-            obj.writeCoords();
-            obj.writeConnec();
-            obj.writeData();
+%             obj.writeCoords();
+%             obj.writeConnec();
+%             obj.writeData();
             obj.saveFile();
         end
         
@@ -60,8 +59,8 @@ classdef ParaviewPostprocessor < handle
 
             % Creating Piece
             pieceN = docNode.createElement('Piece');
-            pieceN.setAttribute('NumberOfPoints', '1'); % !!
-            pieceN.setAttribute('NumberOfCells', '2'); % !!
+            pieceN.setAttribute('NumberOfPoints', string(size(obj.coord,1))); %
+            pieceN.setAttribute('NumberOfCells', string(size(obj.connec,1)));
             gridN.appendChild(pieceN);
 
             % Creating Points
@@ -69,14 +68,18 @@ classdef ParaviewPostprocessor < handle
             pieceN.appendChild(pointsN);
 
             % Creating Points DataArray
+            coordStr = obj.writeCoords();
             pointsDAN = docNode.createElement('DataArray');
             pointsDAN.setAttribute('type', 'Float32');
             pointsDAN.setAttribute('Name', 'Points');
             pointsDAN.setAttribute('NumberOfComponents', '3'); % !!
             pointsDAN.setAttribute('format', 'ascii');
+            pointsDAT = docNode.createTextNode(coordStr);
+            pointsDAN.appendChild(pointsDAT);
             pointsN.appendChild(pointsDAN);
 
             % Creating Cells
+            [connecStr, offsetStr, typesStr] = obj.writeConnec();
             cellsN = docNode.createElement('Cells');
             pieceN.appendChild(cellsN);
 
@@ -85,6 +88,8 @@ classdef ParaviewPostprocessor < handle
             connecDAN.setAttribute('type', 'Int32');
             connecDAN.setAttribute('Name', 'connectivity');
             connecDAN.setAttribute('format', 'ascii');
+            connecDAT = docNode.createTextNode(connecStr);
+            connecDAN.appendChild(connecDAT);
             cellsN.appendChild(connecDAN);
 
             % Creating Cells Offsets DataArray
@@ -92,6 +97,8 @@ classdef ParaviewPostprocessor < handle
             offsetsDAN.setAttribute('type', 'Int32');
             offsetsDAN.setAttribute('Name', 'offsets');
             offsetsDAN.setAttribute('format', 'ascii');
+            offsetDAT = docNode.createTextNode(offsetStr);
+            offsetsDAN.appendChild(offsetDAT);
             cellsN.appendChild(offsetsDAN);
 
             % Creating Cells Types DataArray
@@ -99,16 +106,38 @@ classdef ParaviewPostprocessor < handle
             typesDAN.setAttribute('type', 'UInt8');
             typesDAN.setAttribute('Name', 'types');
             typesDAN.setAttribute('format', 'ascii');
+            typesDAT = docNode.createTextNode(typesStr);
+            typesDAN.appendChild(typesDAT);
             cellsN.appendChild(typesDAN);
 
 
             xmlwrite(docNode)
         end
         
-        function writeCoords(obj)
+        function node = createPointsNode(obj, docNode)
+        end
+
+        function coordStr = writeCoords(obj)
+            nnodes = size(obj.coord,1);
+            if (size(obj.coord,2) == 2)
+                obj.coord = [obj.coord, zeros(nnodes,1)];
+            end
+            coordStr = sprintf('%.4f %.4f %.4f\n', obj.coord');
         end
         
-        function writeConnec(obj)
+        function [connecStr, offsetStr, typesStr] = writeConnec(obj)
+            nelems = size(obj.connec,1);
+            nnodEl = size(obj.connec,2);
+            connecP = obj.connec-1;
+            format = [repmat(' %d',1,nnodEl),'\n'];
+            connecStr = sprintf(format, connecP');
+            
+            offset = nnodEl:nnodEl:nelems*nnodEl;
+            offsetStr = sprintf('%d ', offset);
+            
+            vtkType = obj.getCellType();
+            types = vtkType*ones(nelems,1);
+            typesStr = sprintf('%d ', types);
         end
         
         function writeData(obj)
