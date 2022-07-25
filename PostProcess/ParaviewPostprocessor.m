@@ -1,7 +1,7 @@
 classdef ParaviewPostprocessor < handle
     
-    % Its output is a legacy .vtu file. It can represent both simple
-    % fields and data at Gaussian points.
+    % Its output is a .vtu file. It can represent both simple fields (and
+    % supposedly data at Gaussian points).
     
     properties (Access = public)
         
@@ -110,7 +110,21 @@ classdef ParaviewPostprocessor < handle
             typesDAN.appendChild(typesDAT);
             cellsN.appendChild(typesDAN);
 
-
+            % Create PointData
+            pointDataN = docNode.createElement('PointData');
+            pieceN.appendChild(pointDataN);
+            
+            % Create Displacement DataArray
+            dispStr = sprintf('%.4f %.4f %.4f\n', obj.d_u');
+            displacementDAN = docNode.createElement('DataArray');
+            displacementDAN.setAttribute('type', 'Float64');
+            displacementDAN.setAttribute('Name', 'Displacement');
+            displacementDAN.setAttribute('NumberOfComponents', '3'); % !!
+            displacementDAN.setAttribute('format', 'ascii');
+            displacementDAT = docNode.createTextNode(dispStr);
+            displacementDAN.appendChild(displacementDAT);
+            pointDataN.appendChild(displacementDAN);
+            
             xmlwrite(docNode)
         end
         
