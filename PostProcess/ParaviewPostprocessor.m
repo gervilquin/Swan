@@ -22,9 +22,6 @@ classdef ParaviewPostprocessor < handle
             obj.init(cParams);
             obj.openFile();
             obj.createPiece();
-%             obj.writeCoords();
-%             obj.writeConnec();
-%             obj.writeData();
             obj.saveFile();
         end
         
@@ -41,8 +38,8 @@ classdef ParaviewPostprocessor < handle
         end
         
         function openFile(obj)
-%             fullfile = strcat(obj.filename, '.vtu');
-%             obj.outputFile = fopen(fullfile,'w');
+            fullfile = strcat(obj.filename, '.vtu');
+            obj.outputFile = fopen(fullfile,'w');
         end
         
         function createPiece(obj)
@@ -64,73 +61,87 @@ classdef ParaviewPostprocessor < handle
             gridN.appendChild(pieceN);
 
             % Creating Points
-            pointsN = docNode.createElement('Points');
+            pointsN = obj.createPointsNode(docNode);
             pieceN.appendChild(pointsN);
 
-            % Creating Points DataArray
-            coordStr = obj.writeCoords();
-            pointsDAN = docNode.createElement('DataArray');
-            pointsDAN.setAttribute('type', 'Float32');
-            pointsDAN.setAttribute('Name', 'Points');
-            pointsDAN.setAttribute('NumberOfComponents', '3'); % !!
-            pointsDAN.setAttribute('format', 'ascii');
-            pointsDAT = docNode.createTextNode(coordStr);
-            pointsDAN.appendChild(pointsDAT);
-            pointsN.appendChild(pointsDAN);
-
             % Creating Cells
-            [connecStr, offsetStr, typesStr] = obj.writeConnec();
-            cellsN = docNode.createElement('Cells');
+            cellsN = obj.createCellsNode(docNode);
             pieceN.appendChild(cellsN);
-
-            % Creating Cells Connectivity DataArray
-            connecDAN = docNode.createElement('DataArray');
-            connecDAN.setAttribute('type', 'Int32');
-            connecDAN.setAttribute('Name', 'connectivity');
-            connecDAN.setAttribute('format', 'ascii');
-            connecDAT = docNode.createTextNode(connecStr);
-            connecDAN.appendChild(connecDAT);
-            cellsN.appendChild(connecDAN);
-
-            % Creating Cells Offsets DataArray
-            offsetsDAN = docNode.createElement('DataArray');
-            offsetsDAN.setAttribute('type', 'Int32');
-            offsetsDAN.setAttribute('Name', 'offsets');
-            offsetsDAN.setAttribute('format', 'ascii');
-            offsetDAT = docNode.createTextNode(offsetStr);
-            offsetsDAN.appendChild(offsetDAT);
-            cellsN.appendChild(offsetsDAN);
-
-            % Creating Cells Types DataArray
-            typesDAN = docNode.createElement('DataArray');
-            typesDAN.setAttribute('type', 'UInt8');
-            typesDAN.setAttribute('Name', 'types');
-            typesDAN.setAttribute('format', 'ascii');
-            typesDAT = docNode.createTextNode(typesStr);
-            typesDAN.appendChild(typesDAT);
-            cellsN.appendChild(typesDAN);
 
             % Create PointData
             pointDataN = docNode.createElement('PointData');
             pieceN.appendChild(pointDataN);
             
             % Create Displacement DataArray
-            dispStr = sprintf('%.4f %.4f %.4f\n', obj.d_u');
-            displacementDAN = docNode.createElement('DataArray');
-            displacementDAN.setAttribute('type', 'Float64');
-            displacementDAN.setAttribute('Name', 'Displacement');
-            displacementDAN.setAttribute('NumberOfComponents', '3'); % !!
-            displacementDAN.setAttribute('format', 'ascii');
-            displacementDAT = docNode.createTextNode(dispStr);
-            displacementDAN.appendChild(displacementDAT);
+            displacementDAN = obj.createDisplacementNode(docNode);
             pointDataN.appendChild(displacementDAN);
             
-            xmlwrite(docNode)
+            text = xmlwrite(docNode);
+            fprintf(obj.outputFile, text);
         end
         
-        function node = createPointsNode(obj, docNode)
+        function n = createPointsNode(obj, docNode)
+            n = docNode.createElement('Points');
+            coordStr = obj.writeCoords();
+            dan = docNode.createElement('DataArray');
+            dan.setAttribute('type', 'Float32');
+            dan.setAttribute('Name', 'Points');
+            dan.setAttribute('NumberOfComponents', '3'); % !!
+            dan.setAttribute('format', 'ascii');
+            dat = docNode.createTextNode(coordStr);
+            dan.appendChild(dat);
+            n.appendChild(dan);
+        end
+        
+        function n = createCellsNode(obj, docNode)
+            n = docNode.createElement('Cells');
+            [connecStr, offsetStr, typesStr] = obj.writeConnec();
+            connecN = obj.createCellsConnecNode(docNode, connecStr);
+            offset = obj.createCellsOffsetNode(docNode, offsetStr);
+            types = obj.createCellsTypeNode(docNode, typesStr);
+            n.appendChild(connecN);
+            n.appendChild(offset);
+            n.appendChild(types);
+        end
+        
+        function n = createCellsConnecNode(obj, docNode, cstr)
+            n = docNode.createElement('DataArray');
+            n.setAttribute('type', 'Int32');
+            n.setAttribute('Name', 'connectivity');
+            n.setAttribute('format', 'ascii');
+            t = docNode.createTextNode(cstr);
+            n.appendChild(t);
+        end
+        
+        function n = createCellsOffsetNode(obj, docNode, ostr)
+            n = docNode.createElement('DataArray');
+            n.setAttribute('type', 'Int32');
+            n.setAttribute('Name', 'offsets');
+            n.setAttribute('format', 'ascii');
+            t = docNode.createTextNode(ostr);
+            n.appendChild(t);
+        end
+        
+        function n = createCellsTypeNode(obj, docNode, tstr)
+            n = docNode.createElement('DataArray');
+            n.setAttribute('type', 'UInt8');
+            n.setAttribute('Name', 'types');
+            n.setAttribute('format', 'ascii');
+            t = docNode.createTextNode(tstr);
+            n.appendChild(t);
         end
 
+        function n = createDisplacementNode(obj, docNode)
+            dispStr = sprintf('%.4f %.4f %.4f\n', obj.d_u');
+            n = docNode.createElement('DataArray');
+            n.setAttribute('type', 'Float64');
+            n.setAttribute('Name', 'Displacement');
+            n.setAttribute('NumberOfComponents', '3'); % !!
+            n.setAttribute('format', 'ascii');
+            t = docNode.createTextNode(dispStr);
+            n.appendChild(t);
+        end
+        
         function coordStr = writeCoords(obj)
             nnodes = size(obj.coord,1);
             if (size(obj.coord,2) == 2)
