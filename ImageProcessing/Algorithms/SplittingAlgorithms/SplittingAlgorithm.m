@@ -5,9 +5,8 @@ classdef SplittingAlgorithm < handle
        function obj = create(cParams)
           f = SplittingAlgorithmFactory();
           obj = f.create(cParams);
-       end       
+       end
        
    end
-    
     
 end

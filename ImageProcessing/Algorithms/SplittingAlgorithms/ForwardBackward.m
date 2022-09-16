@@ -28,5 +28,4 @@ classdef ForwardBackward < SplittingAlgorithm
        
     end
     
-    
 end

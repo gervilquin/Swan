@@ -18,7 +18,7 @@ classdef DesignImagVariable < handle
        
        function obj = DesignImagVariable(cParams)
           obj.init(cParams)
-       end    
+       end
        
        function update(obj)
            obj.valueOldOld = obj.valueOld;
@@ -31,9 +31,9 @@ classdef DesignImagVariable < handle
       
        function init(obj,cParams)
           obj.xLength = cParams.xLength;
-          obj.valueOldOld = zeros(obj.xLength,1);                     
-          obj.valueOld    = zeros(obj.xLength,1);           
-          obj.value       = zeros(obj.xLength,1); 
+          obj.valueOldOld = zeros(obj.xLength,1);
+          obj.valueOld    = zeros(obj.xLength,1);
+          obj.value       = zeros(obj.xLength,1);
        end
        
    end

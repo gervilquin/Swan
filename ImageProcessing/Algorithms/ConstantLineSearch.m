@@ -11,5 +11,5 @@ classdef ConstantLineSearch < handle
         end
         
     end
-       
+    
 end
