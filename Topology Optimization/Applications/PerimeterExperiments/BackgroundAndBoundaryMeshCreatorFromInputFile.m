@@ -28,11 +28,10 @@ classdef BackgroundAndBoundaryMeshCreatorFromInputFile < handle
         end
         
         function createBackgroundMesh(obj)
-            coord = [];
-            connec = [];
-            eval(obj.inputFile);
-            s.coord  = coord(:,2:3);
-            s.connec = connec(:,2:end);
+            a.fileName         = obj.inputFile;
+            m                 = FemDataContainer(a);
+            s.coord            = m.mesh.coord;
+            s.connec           = m.mesh.connec;
             obj.backgroundMesh = Mesh(s);                  
         end          
         

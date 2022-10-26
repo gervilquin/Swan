@@ -12,7 +12,7 @@
 %% Data
 
 Data_prb = {
-'Default_title';
+'TRIANGLE';
 'SI';
 '2D';
 'Plane_Stress';
@@ -23,7 +23,7 @@ Data_prb = {
 %% Coordinates
 % Node                X                Y                Z
 
-gidcoord = [
+coord = [
 1            1            0            0
 2       0.9875            0            0
 3            1       0.0125            0
@@ -6590,7 +6590,7 @@ gidcoord = [
 %% Conectivities
 % Element        Node(1)                Node(2)                Node(3)                Material
 
-gidlnods = [
+connec = [
 1 4973 4975 5098 0
 2 4975 5104 5098 0
 3 4853 4857 4973 0
