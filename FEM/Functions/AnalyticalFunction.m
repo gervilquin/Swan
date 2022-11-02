@@ -26,6 +26,14 @@ classdef AnalyticalFunction < L2Function
             xVec = [x;y];
             fxV = obj.fHandle(xV);
         end
+
+        function plot(obj)
+            p.mesh   = obj.mesh;
+            p.connec = obj.mesh.connec;
+            proj = Projector_toP1(p);
+            p1fun = proj.project(obj);
+            p1fun.plot(obj.mesh)
+        end
         
     end
     
