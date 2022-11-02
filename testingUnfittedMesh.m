@@ -84,3 +84,13 @@ grid on
 grid minor
 xlabel('Length','Interpreter','latex')
 ylabel('Absolute error','Interpreter','latex')
+
+% Volume computation
+Vreal = pi*0.3^2;
+
+quad = Quadrature.set('TRIANGLE');
+quad.computeQuadrature('LINEAR');
+
+VunfInner = unfMesh.innerMesh.mesh.computeDvolume(quad);
+VunfInnerCut = unfMesh.innerCutMesh.mesh.computeDvolume(quad);
+Vunf = sum(VunfInner)+sum(VunfInnerCut);
