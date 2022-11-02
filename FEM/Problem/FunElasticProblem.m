@@ -15,7 +15,7 @@ classdef FunElasticProblem < handle
         mesh
         scale
         material
-        boundaryConditions
+        BC
     end
 
     methods (Access = public)
@@ -23,14 +23,13 @@ classdef FunElasticProblem < handle
         function obj = FunElasticProblem(cParams)
             obj.init(cParams);
             obj.createDisplacementFunction();
-%             obj.createBoundaryConditions();
             obj.createSolver();
         end
 
         function solve(obj)
             obj.computeStiffnessMatrix();
-%             obj.computeForces();
-%             obj.computeDisplacements();
+            obj.computeForces();
+            obj.computeDisplacements();
 %             obj.computeStrain();
 %             obj.computeStress();
         end
@@ -43,8 +42,8 @@ classdef FunElasticProblem < handle
             obj.pdim     = cParams.dim;
             obj.mesh     = cParams.mesh;
             obj.scale    = cParams.scale;
-%             obj.inputBC  = cParams.bc;
             obj.material = cParams.material;
+            obj.BC       = cParams.bc;
         end
 
         function createDisplacementFunction(obj)
@@ -59,18 +58,11 @@ classdef FunElasticProblem < handle
             obj.displacement = f;
         end
 
-        function createBoundaryConditions(obj)
-            s.boundaryConditions = obj.boundaryConditions;
-            s.mesh  = obj.mesh;
-            s.scale = obj.scale;
-            bc = BoundaryConditions(s);
-            bc.compute();
-            obj.boundaryConditions = bc;
-        end
-
         function createSolver(obj)
-            s.type =  'DIRECT';
-            obj.solver = Solver.create(s);
+%             s.type =  'DIRECT';
+            s.BC   = obj.BC;
+            s.mesh = obj.mesh;
+            obj.solver = FunSolver(s);
         end
 
         function computeStiffnessMatrix(obj)
@@ -83,34 +75,21 @@ classdef FunElasticProblem < handle
         end
 
         function computeForces(obj)
-            s.type = 'Elastic';
-            s.scale    = obj.scale;
-            s.dim      = obj.displacementField.dim;
-            s.BC       = obj.boundaryConditions;
-            s.mesh     = obj.mesh;
-            s.material = obj.material;
-            s.globalConnec = obj.displacementField.connec;
-            if isprop(obj, 'vstrain')
-                s.vstrain = obj.vstrain;
-            end
-            RHSint = RHSintegrator.create(s);
-            rhs = RHSint.compute();
-            R = RHSint.computeReactions(obj.LHS);
-            obj.variables.fext = rhs + R;
-            obj.RHS = rhs;
+            s.type    = 'FunElastic';
+            s.mesh    = obj.mesh;
+            s.fun     = obj.displacement;
+            s.neumann = obj.BC.neumann;
+            rhs = RHSintegrator_FunElastic(s);
+            obj.RHS = rhs.compute();
         end
 
         function u = computeDisplacements(obj)
-            bc = obj.boundaryConditions;
-            Kred = bc.fullToReducedMatrix(obj.LHS);
-            Fred = bc.fullToReducedVector(obj.RHS);
-            u = obj.solver.solve(Kred,Fred);
-            u = bc.reducedToFullVector(u);
+            u = obj.solver.solve(obj.LHS,obj.RHS);
             obj.displacement.fValues = u;
         end
 
         function computeStrain(obj)
-            obj.strain = obj.displacement.computeGradient();
+            obj.strain = obj.displacement.computeSymmetricGradient();
         end
 
         function computeStress(obj)

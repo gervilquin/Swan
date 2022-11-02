@@ -3,9 +3,9 @@
 
 clear; close all;
 
-% file = 'test2d_triangle';
+file = 'test2d_triangle';
 % file = 'test2d_quad';
-file = 'Cantileverbeam_Quadrilateral_Bilinear';
+% file = 'Cantileverbeam_Quadrilateral_Bilinear';
 a.fileName = file;
 s = FemDataContainer(a);
 fem = FEM.create(s);

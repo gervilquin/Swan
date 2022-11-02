@@ -6,46 +6,29 @@ file = 'test2d_triangle';
 % file = 'test3d_hexahedra';
 a.fileName = file;
 s = FemDataContainer(a);
+
+% Boundary conditions
+nP.type      = 'Neumann';
+nP.value     = [0, -1]; % that zero... meh
+nP.domainFun = @(x) (x(1,:,:) == 0.04) & (x(2,:,:) == 0.02);
+pointF = BoundaryCondition(nP);
+
+dP.type      = 'Dirichlet';
+dP.value     = [0, 0];
+dP.domainFun = @(x) x(1,:,:) == 0;
+fixedU = BoundaryCondition(dP);
+
+s.bc.dirichlet = fixedU;
+s.bc.neumann   = pointF;
+
+% Anyway
 fem = FunElasticProblem(s);
 fem.solve();
-
-%% Not so fast
-clear; % close all;
-
-% file = 'test2d_triangle';
-file = 'test2d_micro';
-a.fileName = file;
-s = FemDataContainer(a);
-mesh = s.mesh;
-
-% AnalyticalFunction
-sAF.fHandle = @(x) [x(1,:,:).^2; x(2,:,:)];
-% sAF.fHandle = @(x) [cos(x(1,:,:).*x(2,:,:)); x(1,:,:).*x(2,:,:)];
-sAF.ndimf   = 2;
-sAF.mesh    = mesh;
-xFun = AnalyticalFunction(sAF);
-
-% Quadrature
-quad = Quadrature.set(s.mesh.type);
-quad.computeQuadrature('LINEAR');
-
-
-% Projector to P1
-pp1.mesh   = mesh;
-pp1.connec = mesh.connec;
-projP1 = Projector_toP1(pp1);
-p1fun = projP1.project(xFun);
-p1fun.plot(mesh)
-
-% Gradients
-grad1 = p1fun.computeGradient(quad,mesh);
-gradientOp = Gradient();
-grad2 = gradientOp.compute(p1fun, quad, mesh);
 
 %% Boundary conditions as functions
 % AnalyticalFunction
 sAF.fHandle = @(x) [x(1,:,:).^2; x(2,:,:)];
 % sAF.fHandle = @(x) [cos(x(1,:,:).*x(2,:,:)); x(1,:,:).*x(2,:,:)];
 sAF.ndimf   = 2;
-sAF.mesh    = mesh;
+sAF.mesh    = s.mesh;
 xFun = AnalyticalFunction(sAF);
