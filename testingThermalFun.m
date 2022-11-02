@@ -35,3 +35,16 @@ a.fileName = file;
 s = FemDataContainer(a);
 fem = FunThermalProblem(s);
 fem.solve();
+
+%% Boundary conditions
+% logicalfun = @(x) x(1,:,:) == 0;
+% logicalfun = @(x) x(1,:,:) >= x(2,:,:);
+% logicalfun = @(x) (x(1,:,:)-0.5).^2+(x(2,:,:)-0.5).^2 - 0.3^2 <= 0;
+logicalfun = @(x) (x(1,:,:)>=0.1) & (x(1,:,:)<=0.2 & x(2,:,:)>=0.1) & (x(2,:,:)<=0.2);
+coor = s.mesh.coord';
+
+z.connec  = s.mesh.connec;
+z.type    = s.mesh.type;
+z.fValues = double(logicalfun(coor)');
+bcMap = P1Function(z);
+bcMap.plot(s.mesh)
