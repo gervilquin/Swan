@@ -6,7 +6,7 @@ classdef FunThermalProblem < handle
     
     properties (Access = private) % In
         mesh
-        cpar
+        BC
     end
     
     properties (Access = private) % Calc
@@ -17,7 +17,6 @@ classdef FunThermalProblem < handle
     methods (Access = public)
         
         function obj = FunThermalProblem(cParams)
-            obj.cpar = cParams;
             obj.init(cParams)
             obj.createTemperatureFunction();
             obj.createSolver();
@@ -36,6 +35,7 @@ classdef FunThermalProblem < handle
         
         function init(obj,cParams)
             obj.mesh = cParams.mesh;
+            obj.BC   = cParams.bc;
         end
         
         function createTemperatureFunction(obj)
@@ -50,8 +50,10 @@ classdef FunThermalProblem < handle
         end
 
         function createSolver(obj)
-            s.type = 'DIRECT';
-            obj.solver = Solver.create(s);
+%             s.type = 'DIRECT';
+            s.mesh = obj.mesh;
+            s.BC   = obj.BC;
+            obj.solver = FunSolver(s);
         end
 
         function computeLHS(obj)

@@ -9,6 +9,8 @@ classdef FunSolver < handle
 
     properties (Access = private)
         free
+        ndofs
+        ndimf
     end
 
     methods (Access = public)
@@ -17,12 +19,12 @@ classdef FunSolver < handle
             obj.init(cParams);
         end
 
-        function x = solve(obj,LHS,RHS)
+        function X = solve(obj,LHS,RHS)
             fr = obj.computeFreeDofs(LHS);
             lhs = obj.reduceMatrix(LHS,fr);
             rhs = obj.reduceVector(RHS,fr);
             x = lhs\rhs;
-%             X = obj.expandVector(x,fr);
+            X = obj.expandVector(x,fr);
         end
 
     end
@@ -42,17 +44,18 @@ classdef FunSolver < handle
             b = B(fr);
         end
 
-        function b = expandVectorDirichlet(obj,bfree)
-            dir = obj.dirichlet;
-            uD  = obj.dirichlet_values;
-            nsteps = length(bfree(1,:));
-            ndof = sum(obj.ndofs);
-            uD = repmat(uD,1,nsteps);
-            
-            b = zeros(ndof,nsteps);
+        function b = expandVector(obj,bfree,fr)
+            b = zeros(obj.ndofs,1);
+
+            coor = obj.mesh.coord';
+            isDirichNods = obj.BC.dirichlet.domainFun(coor)';
+            isDirichDofs = repmat(isDirichNods, [1, obj.ndimf]);
+            dirichDofs = reshape(isDirichDofs',[obj.ndofs,1]);
+            iDir = find(dirichDofs==1);
+            vDir = obj.BC.dirichlet.value;
             b(fr,:) = bfree;
             if ~isempty(dir)
-                b(dir,:) = uD;
+                b(iDir,:) = vDir;
             end
         end
 
@@ -60,6 +63,8 @@ classdef FunSolver < handle
             nNods = size(obj.mesh.coord,1);
             nDimf = size(A,1)/nNods;
             nDofs = nNods*nDimf;
+            obj.ndofs = nDofs;
+            obj.ndimf = nDimf;
             dofs = 1:1:nDofs;
             constr = 1:1:nDofs;
             coor = obj.mesh.coord';
