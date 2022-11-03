@@ -8,6 +8,7 @@ classdef FunElasticProblem < handle
     properties (Access = private) % Calculated
         LHS, RHS, solver
         displacement
+        strain, stress
     end
 
     properties (Access = private) % Inputs
@@ -30,7 +31,7 @@ classdef FunElasticProblem < handle
             obj.computeStiffnessMatrix();
             obj.computeForces();
             obj.computeDisplacements();
-%             obj.computeStrain();
+            obj.computeStrain();
 %             obj.computeStress();
         end
 
@@ -85,11 +86,17 @@ classdef FunElasticProblem < handle
 
         function u = computeDisplacements(obj)
             u = obj.solver.solve(obj.LHS,obj.RHS);
-            obj.displacement.fValues = u;
+            nDimf = obj.displacement.ndimf;
+            nNods = size(obj.mesh.coord,1);
+            uRsh = reshape(u,[nDimf, nNods])';
+            obj.displacement.fValues = uRsh;
         end
 
         function computeStrain(obj)
-            obj.strain = obj.displacement.computeSymmetricGradient();
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('LINEAR');
+            sig = obj.displacement.computeSymmetricGradient2(q,obj.mesh);
+            obj.strain = sig;
         end
 
         function computeStress(obj)
