@@ -107,13 +107,19 @@ classdef P2Function < FeFunction
         end
 
         function plot(obj, m) % 2D domains only
-            x = m.coord(:,1);
-            y = m.coord(:,2);
+            s.mesh          = m;
+            s.interpolation = obj.interpolation;
+            c = ConnecCoordFromInterpAndMesh(s);
+            c.compute();
+            coord = c.coord;
+            connec = obj.connec(:, [1 4 2 5 3 6]);
+            x = coord(:,1);
+            y = coord(:,2);
             figure()
             for idim = 1:obj.ndimf
                 subplot(1,obj.ndimf,idim);
                 z = obj.fValues(:,idim);
-                a = trisurf(m.connec,x,y,z);
+                a = trisurf(connec,x,y,z);
                 view(0,90)
     %             colorbar
                 shading interp
