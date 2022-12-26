@@ -27,7 +27,6 @@ classdef MatrixBuilder < handle
         function Ct = buildCMatrix(bc, sK)
             % dirichlet: contains restricted dofs DOFr x 1
             % dirichlet_values: contains displacement values DOFr x 1
-            % C is a squared matrix
             dirichletDOFs = bc.dirichlet;
             nDOFr = size(dirichletDOFs, 1);
             Ct = zeros(nDOFr, sK);
