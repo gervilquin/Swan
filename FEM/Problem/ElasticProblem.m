@@ -173,13 +173,17 @@ classdef ElasticProblem < handle
             obj.variables.fext = rhs + R;
             obj.RHS = rhs;
         end
-
+        
         function u = computeDisplacements(obj)
             bc = obj.boundaryConditions;
-            Kred = bc.fullToReducedMatrix(obj.stiffnessMatrix);
-            Fred = bc.fullToReducedVector(obj.RHS);
-            u = obj.solver.solve(Kred,Fred);
-            u = bc.reducedToFullVector(u);
+%             Kred = bc.fullToReducedMatrix(obj.stiffnessMatrix);
+%             Fred = bc.fullToReducedVector(obj.RHS);
+            genM = MatrixBuilder.createGeneralMatrix(obj.stiffnessMatrix, bc);
+            genFVector = MatrixBuilder.createGeneralVector(obj.RHS, bc);
+            sol = obj.solver.solve(genM,genFVector);
+            uSize = size(genM, 1);
+            u = sol(1:uSize);
+%             u = bc.reducedToFullVector(u);
             obj.variables.d_u = u;
 %             z.connec = obj.mesh.connec;
 %             z.type   = obj.mesh.type;
