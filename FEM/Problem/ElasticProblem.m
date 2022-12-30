@@ -10,6 +10,7 @@ classdef ElasticProblem < handle
         stiffnessMatrix
         RHS
         solver
+        integratorBuilder
         geometry
         scale
         pdim
@@ -37,6 +38,7 @@ classdef ElasticProblem < handle
             obj.createDisplacementField();
             obj.createBoundaryConditions();
             obj.createSolver();
+            obj.createIntegratorBuilder();
         end
 
         function solve(obj)
@@ -146,6 +148,11 @@ classdef ElasticProblem < handle
             obj.solver = Solver.create(s);
         end
 
+        function createIntegratorBuilder(obj)
+            s.type = 'MONOLITIC';
+            obj.integratorBuilder = IntegratorBuilder.create(s);
+        end
+
         function computeStiffnessMatrix(obj)
             s.type     = 'ElasticStiffnessMatrix';
             s.mesh     = obj.mesh;
@@ -176,18 +183,15 @@ classdef ElasticProblem < handle
         
         function u = computeDisplacements(obj)
             bc = obj.boundaryConditions;
-%             Kred = bc.fullToReducedMatrix(obj.stiffnessMatrix);
-%             Fred = bc.fullToReducedVector(obj.RHS);
-            s.K = obj.stiffnessMatrix;
+            s.LHS = obj.stiffnessMatrix;
             s.RHS = obj.RHS;
             s.bc = bc;
-            m = MatrixBuilder(s);
-            genLHS = m.createLHS();
-            genRHS = m.createRHS();
-            sol = obj.solver.solve(genLHS,genRHS);
-            uSize = size(s.K, 1);
-            u = sol(1:uSize);
-%             u = bc.reducedToFullVector(u);
+            s.type = 'MONOLITIC';
+            obj.integratorBuilder.createBuilder(s);
+            defRHS = obj.integratorBuilder.createRHS();
+            defLHS = obj.integratorBuilder.createLHS();
+            sol = obj.solver.solve(defLHS,defRHS);
+            u = DisplacementComputer.computeU(s, sol);
             obj.variables.d_u = u;
 %             z.connec = obj.mesh.connec;
 %             z.type   = obj.mesh.type;

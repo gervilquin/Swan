@@ -58,8 +58,7 @@ classdef MatrixBuilder < handle
         end
 
         function Ct = createConstraintMatrix(obj)
-            bC = obj.bc;
-            dirichletDOFs    = bC.dirichlet;
+            dirichletDOFs    = obj.bc.dirichlet;
             obj.nConstraints = size(dirichletDOFs, 1);
             Ct               = zeros(obj.nConstraints, obj.sK);
             for i = 1:obj.nConstraints
