@@ -10,6 +10,7 @@ classdef BoundaryConditions < handle
         periodic_constrained
         neumann
         neumann_values
+        integratorBuilder
     end
 
     properties (Access = private)
@@ -78,6 +79,7 @@ classdef BoundaryConditions < handle
             obj.ndofs          = cParams.ndofs; % Stokes
             obj.initPeriodicMasterSlave(cParams);
             obj.initDirichletInput(cParams);
+            obj.integratorBuilder = IntegratorBuilder.create(cParams);
         end
 
         function initDirichletInput(obj, s)

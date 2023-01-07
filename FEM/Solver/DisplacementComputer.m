@@ -3,7 +3,7 @@ classdef DisplacementComputer < handle
     methods (Static)
 
         function u = computeU(cParams, sol)
-            switch cParams.type
+            switch cParams.builderType
                 case 'MONOLITIC'
                     uDofs = size(cParams.LHS, 1);
                     u = sol(1:uDofs);

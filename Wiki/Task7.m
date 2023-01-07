@@ -8,5 +8,15 @@
 file = 'test2d_triangle';
 a.fileName = file;
 s = FemDataContainer(a);
+s = ObjectSaver.saveObj(s);
+s.builderType = 'MONOLITIC';
+fem = FEM.create(s);
+fem.solve();
+
+file = 'test2d_triangle_non_null';
+a.fileName = file;
+s = FemDataContainer(a);
+s = ObjectSaver.saveObj(s);
+s.builderType = 'REDUCED';
 fem = FEM.create(s);
 fem.solve();

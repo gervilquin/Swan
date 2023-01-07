@@ -17,7 +17,9 @@ classdef ReducedBuilder < handle
         end
 
         function defRHS = createRHS(obj)
-            defRHS = obj.bc.fullToReducedVector(obj.rhs);
+            R = obj.computeReactions();
+            fullRHS = obj.rhs + R;
+            defRHS = obj.bc.fullToReducedVector(fullRHS);
         end
     end
 
@@ -29,5 +31,20 @@ classdef ReducedBuilder < handle
             obj.lhs = cParams.LHS;
             obj.rhs = cParams.RHS;
         end
+
+        function R = computeReactions(obj)
+            boundaryCond  = obj.bc;
+            K             = obj.lhs;
+            dirich  = boundaryCond.dirichlet;
+            dirichV = boundaryCond.dirichlet_values;
+            if ~isempty(dirich)
+                R = -K(:,dirich)*dirichV;
+            else
+                R = zeros(sum(obj.dim.ndofs(:)),1);
+            end
+
+        end
+
     end
+   
 end

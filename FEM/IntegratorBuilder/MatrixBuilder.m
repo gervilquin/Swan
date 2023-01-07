@@ -2,10 +2,10 @@ classdef MatrixBuilder < handle
     % Class to build matrix for direct solution without reductions. 
 
     properties (Access = private)
-        K
+        LHS
         bc
         RHS
-        sK
+        sizeK
         nConstraints
     end
 
@@ -26,10 +26,10 @@ classdef MatrixBuilder < handle
 
     methods (Access = private)
         function init(obj, cParams)
-            obj.K   = cParams.LHS;
+            obj.LHS   = cParams.LHS;
             obj.bc  = cParams.bc;
             obj.RHS = cParams.RHS;
-            obj.sK  = size(cParams.LHS, 1);
+            obj.sizeK  = size(cParams.LHS, 1);
         end
 
         function fullLHS = createGeneralMatrix(obj, Ct)
@@ -43,7 +43,7 @@ classdef MatrixBuilder < handle
 %             fullLHS(1:sC1, obj.sK+1:end) = C;
             nC = obj.nConstraints;
             Z  = zeros(nC);
-            Km = obj.K;
+            Km = obj.LHS;
             fullLHS = [Km C; C' Z];
         end
 
@@ -60,7 +60,7 @@ classdef MatrixBuilder < handle
         function Ct = createConstraintMatrix(obj)
             dirichletDOFs    = obj.bc.dirichlet;
             obj.nConstraints = size(dirichletDOFs, 1);
-            Ct               = zeros(obj.nConstraints, obj.sK);
+            Ct               = zeros(obj.nConstraints, obj.sizeK);
             for i = 1:obj.nConstraints
                  Ct(i,dirichletDOFs(i)) = 1; 
             end     

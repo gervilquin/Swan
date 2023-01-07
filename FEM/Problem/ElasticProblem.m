@@ -16,6 +16,7 @@ classdef ElasticProblem < handle
         pdim
         ptype
         inputBC
+        btype
     end
 
     properties (Access = protected)
@@ -38,7 +39,6 @@ classdef ElasticProblem < handle
             obj.createDisplacementField();
             obj.createBoundaryConditions();
             obj.createSolver();
-            obj.createIntegratorBuilder();
         end
 
         function solve(obj)
@@ -98,6 +98,7 @@ classdef ElasticProblem < handle
             obj.pdim        = cParams.dim;
             obj.ptype       = cParams.type;
             obj.inputBC     = cParams.bc;
+            obj.btype       = cParams.builderType;
             if isprop(cParams, 'interpolationType')
                 obj.interpolationType = cParams.interpolationType;
             else
@@ -138,6 +139,7 @@ classdef ElasticProblem < handle
             s.scale = obj.scale;
             s.bc    = {bc};
             s.ndofs = obj.displacementField.dim.ndofs;
+            s.type = obj.btype; % builder type
             bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
@@ -148,10 +150,10 @@ classdef ElasticProblem < handle
             obj.solver = Solver.create(s);
         end
 
-        function createIntegratorBuilder(obj)
-            s.type = 'MONOLITIC';
-            obj.integratorBuilder = IntegratorBuilder.create(s);
-        end
+%         function createIntegratorBuilder(obj)
+%             s.type = obj.btype;
+%             obj.integratorBuilder = IntegratorBuilder.create(s);
+%         end
 
         function computeStiffnessMatrix(obj)
             s.type     = 'ElasticStiffnessMatrix';
@@ -176,22 +178,22 @@ classdef ElasticProblem < handle
             end
             RHSint = RHSintegrator.create(s);
             rhs = RHSint.compute();
-            R = RHSint.computeReactions(obj.stiffnessMatrix);
-            obj.variables.fext = rhs + R;
+            obj.variables.fext = rhs;
             obj.RHS = rhs;
         end
         
         function u = computeDisplacements(obj)
-            bc = obj.boundaryConditions;
-            s.LHS = obj.stiffnessMatrix;
-            s.RHS = obj.RHS;
-            s.bc = bc;
-            s.type = 'MONOLITIC';
-            obj.integratorBuilder.createBuilder(s);
-            defRHS = obj.integratorBuilder.createRHS();
-            defLHS = obj.integratorBuilder.createLHS();
-            sol = obj.solver.solve(defLHS,defRHS);
-            u = DisplacementComputer.computeU(s, sol);
+            bc            = obj.boundaryConditions;
+            builder       = bc.integratorBuilder;
+            s.LHS         = obj.stiffnessMatrix;
+            s.RHS         = obj.RHS;
+            s.bc          = bc;
+            s.builderType = obj.btype;
+            builder.createBuilder(s);
+            defRHS = builder.createRHS();
+            defLHS = builder.createLHS();
+            sol    = obj.solver.solve(defLHS,defRHS);
+            u      = DisplacementComputer.computeU(s, sol);
             obj.variables.d_u = u;
 %             z.connec = obj.mesh.connec;
 %             z.type   = obj.mesh.type;
