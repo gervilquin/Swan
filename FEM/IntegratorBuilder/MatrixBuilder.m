@@ -33,14 +33,7 @@ classdef MatrixBuilder < handle
         end
 
         function fullLHS = createGeneralMatrix(obj, Ct)
-            % Method to create the general matrix
             C = Ct';
-%             sC1 = size(C, 1);
-%             sC2 = size(C, 2);
-%             fullLHS = zeros(obj.sK+sC2);
-%             fullLHS(1:obj.sK, 1:obj.sK) = obj.K;
-%             fullLHS(obj.sK+1:end, 1:sC1) = C';
-%             fullLHS(1:sC1, obj.sK+1:end) = C;
             nC = obj.nConstraints;
             Z  = zeros(nC);
             Km = obj.LHS;
@@ -49,11 +42,6 @@ classdef MatrixBuilder < handle
 
         function fullRHS = createGeneralVector(obj)
             uD = obj.bc.dirichlet_values;
-%             sRHS = size(obj.RHS,1);
-%             sDirichlet = size(constDisp, 1);
-%             fullRHS = zeros(sRHS+sDirichlet, 1);
-%             fullRHS(1:sRHS) = obj.RHS;
-%             fullRHS(sRHS+1:end) = constDisp;
             fullRHS = [obj.RHS; uD];
         end
 

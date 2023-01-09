@@ -150,10 +150,6 @@ classdef ElasticProblem < handle
             obj.solver = Solver.create(s);
         end
 
-%         function createIntegratorBuilder(obj)
-%             s.type = obj.btype;
-%             obj.integratorBuilder = IntegratorBuilder.create(s);
-%         end
 
         function computeStiffnessMatrix(obj)
             s.type     = 'ElasticStiffnessMatrix';
@@ -189,15 +185,17 @@ classdef ElasticProblem < handle
             s.RHS         = obj.RHS;
             s.bc          = bc;
             s.builderType = obj.btype;
+            s.solver      = obj.solver;
             builder.createBuilder(s);
-            defRHS = builder.createRHS();
-            defLHS = builder.createLHS();
-            sol    = obj.solver.solve(defLHS,defRHS);
-            u      = DisplacementComputer.computeU(s, sol);
+            [u,R] = builder.solve();
+        %    defRHS = builder.createRHS();
+       %     defLHS = builder.createLHS();
+           % sol    = obj.solver.solve(defLHS,defRHS);
+           % u      = DisplacementComputer.computeU(s, sol);
             obj.variables.d_u = u;
 %             z.connec = obj.mesh.connec;
 %             z.type   = obj.mesh.type;
-%             z.fNodes = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+%             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
 %             uFeFun = P1Function(z);
         end
 
