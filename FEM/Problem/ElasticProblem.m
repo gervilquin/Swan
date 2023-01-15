@@ -187,12 +187,9 @@ classdef ElasticProblem < handle
             s.builderType = obj.btype;
             s.solver      = obj.solver;
             builder.createBuilder(s);
-            [u,R] = builder.solve();
-        %    defRHS = builder.createRHS();
-       %     defLHS = builder.createLHS();
-           % sol    = obj.solver.solve(defLHS,defRHS);
-           % u      = DisplacementComputer.computeU(s, sol);
+            [u,R] = builder.solveSystem();
             obj.variables.d_u = u;
+            obj.variables.React = R;
 %             z.connec = obj.mesh.connec;
 %             z.type   = obj.mesh.type;
 %             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
