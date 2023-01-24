@@ -55,7 +55,7 @@ classdef PrecomputedVariableTest < handle
             obj.variablesToStore = cParams.variablesToStore;
             obj.computerType     = cParams.computerType;
             obj.testResultsName  = cParams.testName;
-            obj.solverType       = cParams.testsolverType;
+            obj.solverType       = cParams.testSolverType;
             if isfield(cParams, 'testResultsName')
                 obj.testResultsName = cParams.testResultsName;
             end
