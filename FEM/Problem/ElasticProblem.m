@@ -186,6 +186,7 @@ classdef ElasticProblem < handle
             s.bc          = bc;
             s.builderType = obj.btype;
             s.solver      = obj.solver;
+            s.scale       = obj.scale;
             builder.createBuilder(s);
             [u,R] = builder.solveSystem();
             obj.variables.d_u = u;

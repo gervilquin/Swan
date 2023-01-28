@@ -2,9 +2,10 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
         triangle = {'test2d_triangle'}
+        micro = {'test2d_micro'}
     end
 
-    methods (Test)
+    methods (Test, TestTags = {'Monolitic', 'Macro'})
 
         function testTriangleNullDisp(testCase, triangle)
             s.computerType     = 'FEM';
@@ -29,5 +30,20 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             testCase.verifyLessThanOrEqual(err, tol);
         end
 
+    end
+
+    methods (Test, TestTags = {'Monolitic', 'Micro'})
+        
+        function testMicro(testCase, micro)
+            s.testName = micro;
+            s.variablesToStore = {'Chomog'};
+            s.computerType = 'MICRO';
+            s.testSolverType   = 'MONOLITIC';
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+    
     end
 end

@@ -135,6 +135,7 @@ classdef FemTests < handle & matlab.unittest.TestCase
             s.testName = microTests;
             s.variablesToStore = {'Chomog'};
             s.computerType = 'MICRO';
+            s.testSolverType   = 'REDUCED';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
             tol = 1e-6;

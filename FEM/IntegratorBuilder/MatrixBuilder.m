@@ -8,6 +8,7 @@ classdef MatrixBuilder < handle
         sizeK
         nConstraints
         solver
+        scale
     end
 
     methods (Access = public)
@@ -21,7 +22,7 @@ classdef MatrixBuilder < handle
             defLHS = obj.createLHS();
             sol = obj.solver.solve(defLHS, defRHS);
             u   = sol(1:obj.sizeK, 1);
-            R   = -sol(obj.sizeK+1:end, 1);
+            R = computeReactions(obj, sol);
         end
 
     end
@@ -33,6 +34,7 @@ classdef MatrixBuilder < handle
             obj.RHS = cParams.RHS;
             obj.sizeK  = size(cParams.LHS, 1);
             obj.solver = cParams.solver;
+            obj.scale = cParams.scale;
         end
 
         function defLHS = createLHS(obj)
@@ -53,17 +55,59 @@ classdef MatrixBuilder < handle
         end
 
         function fullRHS = createGeneralVector(obj)
-            uD = obj.bc.dirichlet_values;
-            fullRHS = [obj.RHS; uD];
+            switch obj.scale
+                case 'MACRO'
+                    uD = obj.bc.dirichlet_values;
+                    fullRHS = [obj.RHS; uD];
+                case 'MICRO'
+                    nPerDofs = size(obj.bc.periodic_constrained, 1);
+                    perVector = zeros(nPerDofs, 1);
+                    uD = obj.bc.dirichlet_values;
+                    fullRHS = [obj.RHS; perVector; uD];
+            end
+            
         end
 
         function Ct = createConstraintMatrix(obj)
-            dirichletDOFs    = obj.bc.dirichlet;
-            obj.nConstraints = size(dirichletDOFs, 1);
-            Ct               = zeros(obj.nConstraints, obj.sizeK);
-            for i = 1:obj.nConstraints
-                 Ct(i,dirichletDOFs(i)) = 1; 
-            end     
+            [CtDir, sizeDir] = obj.computeDirichletCond();
+            switch obj.scale
+                case 'MACRO'
+                    obj.nConstraints = sizeDir;
+                    Ct               = CtDir;
+                case 'MICRO'
+                    perDOFslave      = obj.bc.periodic_constrained;
+                    perDOFmaster     = obj.bc.periodic_free;
+                    sizePer          = size(perDOFslave, 1);
+                    obj.nConstraints = sizeDir + sizePer; 
+                    Ct               = zeros(obj.nConstraints, obj.sizeK);
+                    %build periodic conditions
+                    for i = 1:sizePer
+                        masterNode = perDOFmaster(i);
+                        slaveNode = perDOFslave(i);
+                        Ct(i, [masterNode slaveNode]) = [1 -1];
+                    end
+                    %build dirichlet conditions
+                    Ct(sizePer+1:end, :) = CtDir;
+            end
+        end
+
+        function [CtDir, sizeDir] = computeDirichletCond(obj)
+            dirDOFs    = obj.bc.dirichlet;
+            sizeDir = size(dirDOFs, 1);
+            CtDir = zeros(sizeDir, obj.sizeK);
+            for i = 1:sizeDir
+                CtDir(i,dirDOFs(i)) = 1; 
+            end
+        end
+
+        function R = computeReactions(obj, sol)
+            switch obj.scale
+                case 'MACRO'
+                    R = -sol(obj.sizeK+1:end, 1);
+                case 'MICRO'
+                    sizePer = size(obj.bc.periodic_constrained, 1);
+                    R = -sol(obj.sizeK+sizePer+1, 1);
+            end
         end
     end
 end
