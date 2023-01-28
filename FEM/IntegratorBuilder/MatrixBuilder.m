@@ -80,13 +80,11 @@ classdef MatrixBuilder < handle
                     sizePer          = size(perDOFslave, 1);
                     obj.nConstraints = sizeDir + sizePer; 
                     Ct               = zeros(obj.nConstraints, obj.sizeK);
-                    %build periodic conditions
                     for i = 1:sizePer
                         masterNode = perDOFmaster(i);
                         slaveNode = perDOFslave(i);
                         Ct(i, [masterNode slaveNode]) = [1 -1];
                     end
-                    %build dirichlet conditions
                     Ct(sizePer+1:end, :) = CtDir;
             end
         end
@@ -106,7 +104,7 @@ classdef MatrixBuilder < handle
                     R = -sol(obj.sizeK+1:end, 1);
                 case 'MICRO'
                     sizePer = size(obj.bc.periodic_constrained, 1);
-                    R = -sol(obj.sizeK+sizePer+1, 1);
+                    R = -sol(obj.sizeK+sizePer+1:end, 1);
             end
         end
     end
