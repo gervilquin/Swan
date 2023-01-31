@@ -1,4 +1,4 @@
-classdef primaldualdeblur < handle
+classdef PrimalDualDeBlur < handle
     
     
     properties (Access = protected)
@@ -19,7 +19,7 @@ classdef primaldualdeblur < handle
     
     methods (Access = public)
         
-        function obj = primaldualdeblur()
+        function obj = PrimalDualDeBlur()
             obj.readImage();
             obj.createDmatrix();
             obj.createH();
