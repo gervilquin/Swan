@@ -10,6 +10,7 @@ classdef RHSintegrator_ElasticMicro < handle
         dvolume
         globalConnec
         quadrature
+        btype
     end
     
     methods (Access = public)
@@ -52,6 +53,7 @@ classdef RHSintegrator_ElasticMicro < handle
             obj.material           = cParams.material;
             obj.globalConnec       = cParams.globalConnec;
             obj.vstrain            = cParams.vstrain;
+            obj.btype              = cParams.btype;
         end
        
         function createQuadrature(obj)

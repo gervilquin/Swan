@@ -44,6 +44,17 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
+
+        function testMicroChOV(testCase, micro)
+            s.testName = micro;
+            s.variablesToStore = {'Chomog'};
+            s.computerType = 'MICRO';
+            s.testSolverType   = 'MONOLITIC_MICRO';
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
     
     end
 end

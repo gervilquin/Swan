@@ -24,30 +24,41 @@ classdef ElasticProblemMicro < ElasticProblem
         end
 
         function Ch = computeChomog(obj)
-            nelem = size(obj.material.C,3);
-            npnod = obj.displacementField.dim.nnodes;
-            ndofs = npnod*obj.displacementField.dim.ndimf;
             nstre = obj.material.nstre;
-            ngaus = obj.quadrature.ngaus;
             basis = diag(ones(nstre,1));
-            tStrn  = zeros(nstre,ngaus,nstre,nelem);
-            tStrss = zeros(nstre,ngaus,nstre,nelem);
-            tDisp  = zeros(nstre,ndofs);
             Ch = zeros(nstre,nstre);
-            for istre=1:nstre
-                obj.vstrain = basis(istre,:);
-                obj.solve();
-                vars = obj.computeStressStrainAndCh();
-                Ch(:,istre)         = vars.stress_homog;
-                tStrn(istre,:,:,:)  = vars.strain;
-                tStrss(istre,:,:,:) = vars.stress;
-                tDisp(istre,:)      = vars.d_u;
-                obj.assignVarsToPrint(istre);
+            switch obj.btype 
+                case {'REDUCED', 'MONOLITIC'}
+                    nelem = size(obj.material.C,3);
+                    npnod = obj.displacementField.dim.nnodes;
+                    ndofs = npnod*obj.displacementField.dim.ndimf;
+                    ngaus = obj.quadrature.ngaus;
+                    tStrn  = zeros(nstre,ngaus,nstre,nelem);
+                    tStrss = zeros(nstre,ngaus,nstre,nelem);
+                    tDisp  = zeros(nstre,ndofs);
+                    for istre=1:nstre
+                        obj.vstrain = basis(istre,:);
+                        obj.solve();
+                        vars = obj.computeStressStrainAndCh();
+                        Ch(:,istre)         = vars.stress_homog;
+                        tStrn(istre,:,:,:)  = vars.strain;
+                        tStrss(istre,:,:,:) = vars.stress;
+                        tDisp(istre,:)      = vars.d_u;
+                        obj.assignVarsToPrint(istre);
+                    end
+                    obj.variables.Chomog  = Ch;
+                    obj.variables.tstrain = tStrn;
+                    obj.variables.tstress = tStrss;
+                    obj.variables.tdisp   = tDisp;
+                case 'MONOLITIC_MICRO'
+                    basis = diag(ones(nstre,1));
+                    for istre=1:nstre
+                        obj.vstrain = basis(istre,:);
+                        obj.solve();
+                        Ch(:, istre) = obj.variables.React;
+                    end
+                    obj.variables.Chomog = Ch;
             end
-            obj.variables.Chomog  = Ch;
-            obj.variables.tstrain = tStrn;
-            obj.variables.tstress = tStrss;
-            obj.variables.tdisp   = tDisp;
         end
 
 %         function print(obj,filename)

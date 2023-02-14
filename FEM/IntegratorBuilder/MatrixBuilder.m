@@ -75,6 +75,11 @@ classdef MatrixBuilder < handle
                     obj.nConstraints = sizeDir;
                     Ct               = CtDir;
                 case 'MICRO'
+                    s.dirDOFs        = obj.bc.dirichlet;
+                    s.sizeK          = obj.sizeK;
+                    DirComputer      = DirichletComputer(s);
+                    [CtDir, sizeDir] = DirComputer.compute();
+%                     [CtDir, sizeDir] = obj.computeDirichletCond();
                     perDOFslave      = obj.bc.periodic_constrained;
                     perDOFmaster     = obj.bc.periodic_free;
                     sizePer          = size(perDOFslave, 1);

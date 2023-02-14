@@ -16,13 +16,13 @@ classdef ElasticProblem < handle
         pdim
         ptype
         inputBC
-        btype
+        
     end
 
     properties (Access = protected)
         quadrature
         material
-
+        btype
         vstrain
 
         mesh % For Homogenization
@@ -139,7 +139,7 @@ classdef ElasticProblem < handle
             s.scale = obj.scale;
             s.bc    = {bc};
             s.ndofs = obj.displacementField.dim.ndofs;
-            s.type = obj.btype; % builder type
+            s.btype = obj.btype; % builder type
             bc = BoundaryConditions(s);
             bc.compute();
             obj.boundaryConditions = bc;
@@ -169,6 +169,7 @@ classdef ElasticProblem < handle
             s.mesh     = obj.mesh;
             s.material = obj.material;
             s.globalConnec = obj.displacementField.connec;
+            s.btype = obj.btype;
             if isprop(obj, 'vstrain')
                 s.vstrain = obj.vstrain;
             end
@@ -187,6 +188,10 @@ classdef ElasticProblem < handle
             s.builderType = obj.btype;
             s.solver      = obj.solver;
             s.scale       = obj.scale;
+            s.mesh        = obj.mesh;
+            if isprop(obj, 'vstrain')
+                s.vstrain = obj.vstrain;
+            end
             builder.createBuilder(s);
             [u,R] = builder.solveSystem();
             obj.variables.d_u = u;
