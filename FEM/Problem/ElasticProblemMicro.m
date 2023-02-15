@@ -28,7 +28,7 @@ classdef ElasticProblemMicro < ElasticProblem
             basis = diag(ones(nstre,1));
             Ch = zeros(nstre,nstre);
             switch obj.btype 
-                case {'REDUCED', 'MONOLITIC'}
+                case {'REDUCED'}
                     nelem = size(obj.material.C,3);
                     npnod = obj.displacementField.dim.nnodes;
                     ndofs = npnod*obj.displacementField.dim.ndimf;
@@ -50,7 +50,8 @@ classdef ElasticProblemMicro < ElasticProblem
                     obj.variables.tstrain = tStrn;
                     obj.variables.tstress = tStrss;
                     obj.variables.tdisp   = tDisp;
-                case 'MONOLITIC_MICRO'
+
+                case {'MONOLITIC_MICRO_CoV', 'MONOLITIC_MICRO'}
                     basis = diag(ones(nstre,1));
                     for istre=1:nstre
                         obj.vstrain = basis(istre,:);

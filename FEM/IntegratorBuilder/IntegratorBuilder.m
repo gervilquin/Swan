@@ -11,6 +11,9 @@ classdef IntegratorBuilder < handle
 
                 case 'MONOLITIC_MICRO'
                     iType = MicroBuilder();
+                
+                case 'MONOLITIC_MICRO_CoV'
+                    iType = MicroBuilderCoV();
             end
             
         end

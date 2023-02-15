@@ -38,7 +38,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             s.testName = micro;
             s.variablesToStore = {'Chomog'};
             s.computerType = 'MICRO';
-            s.testSolverType   = 'MONOLITIC';
+            s.testSolverType   = 'MONOLITIC_MICRO';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
             tol = 1e-6;
@@ -49,7 +49,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             s.testName = micro;
             s.variablesToStore = {'Chomog'};
             s.computerType = 'MICRO';
-            s.testSolverType   = 'MONOLITIC_MICRO';
+            s.testSolverType   = 'MONOLITIC_MICRO_CoV';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
             tol = 1e-6;
