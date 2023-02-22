@@ -11,6 +11,7 @@ classdef MicroBuilder < handle
         scale
         sizePer
         mesh
+        C
     end
 
     methods (Access = public)
@@ -82,6 +83,7 @@ classdef MicroBuilder < handle
                 Ct(i, [masterNode slaveNode]) = [1 -1];
             end
             Ct(obj.sizePer+1:end, :) = CtDir;
+            obj.C = Ct;
         end
 
         function [CtDir, sizeDir] = computeDirichletCond(obj)
@@ -93,36 +95,48 @@ classdef MicroBuilder < handle
             end
         end
 
-        function R = computeReactions(obj, sol)
-            obj.sizePer = size(obj.bc.periodic_constrained, 1);
-            R = -sol(obj.sizeK+obj.sizePer+1:end, 1);
-        end
-
         function [L, stressHomog] = computeStressHomog(obj, sol)
             nEqperType = obj.sizePer/4;
-            Lx  = 0;
-            Ly  = 0;
-            Lxy = 0;
+            sigmaX = 0;
+            sigmaY = 0;
+            tauXY  = 0;
             d1  = obj.sizeK+1;
             d2  = obj.sizeK + obj.sizePer;
-            L   = sol(d1:d2);
-            % first 39: xx
+            L   = sol(d1:end);
+            % first 8: xx
             for i = 1:nEqperType
-                Lx = Lx + L(i);
+                sigmaX = sigmaX + L(i);
+                 if i == 1
+                    sigXaux = L(i);
+                    sigmaX = sigmaX + sigXaux;
+                end
             end
-            % second 39: xy
+            % second 8: xy
             for i = nEqperType+1:2*nEqperType
-                Lxy = Lxy + L(i);
+                tauXY = tauXY + L(i);
+                if i == nEqperType+1
+                    sigXYaux = L(i);
+                    tauXY = tauXY + sigXYaux;
+                end
             end
-            % third 39: xy
+            % third 8: xy
             for i = 2*nEqperType+1:3*nEqperType
-                Lxy = Lxy + L(i);
+                tauXY = tauXY + L(i);
+                if i == 2*nEqperType+1
+                    sigXYaux = L(i);
+                    tauXY = tauXY + sigXYaux;
+                end
             end
-            % last 39: yy
+            % last 8: yy
             for i = 3*nEqperType+1:4*nEqperType
-                Ly = Ly + L(i);
-            end            
-            stressHomog = -[Lx; Ly; Lxy];
+                sigmaY = sigmaY + L(i);
+                if i == 3*nEqperType+1
+                    sigYaux = L(i);
+                    sigmaY = sigmaY + sigYaux;
+                end
+            end        
+            stressHomog = [sigmaX; sigmaY; tauXY/2];
         end
+
     end
 end

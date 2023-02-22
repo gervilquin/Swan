@@ -3,6 +3,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
     properties (TestParameter)
         triangle = {'test2d_triangle'}
         micro = {'test2d_micro'}
+        microThin = {'test2d_micro_thin'}
     end
 
     methods (Test, TestTags = {'Monolitic', 'Macro'})
@@ -34,8 +35,8 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
 
     methods (Test, TestTags = {'Monolitic', 'Micro'})
         
-        function testMicro(testCase, micro)
-            s.testName = micro;
+        function testMicro(testCase, microThin)
+            s.testName = microThin;
             s.variablesToStore = {'Chomog'};
             s.computerType = 'MICRO';
             s.testSolverType   = 'MONOLITIC_MICRO';
@@ -45,8 +46,8 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             testCase.verifyLessThanOrEqual(err, tol)
         end
 
-        function testMicroChOV(testCase, micro)
-            s.testName = micro;
+        function testMicroChOV(testCase, microThin)
+            s.testName = microThin;
             s.variablesToStore = {'Chomog'};
             s.computerType = 'MICRO';
             s.testSolverType   = 'MONOLITIC_MICRO_CoV';
