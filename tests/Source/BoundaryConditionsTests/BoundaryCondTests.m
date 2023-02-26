@@ -56,6 +56,17 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             tol = 1e-6;
             testCase.verifyLessThanOrEqual(err, tol)
         end
+
+        function testMicroReduced(testCase, microThin)
+            s.testName = microThin;
+            s.variablesToStore = {'Chomog'};
+            s.computerType = 'MICRO';
+            s.testSolverType = 'REDUCED';
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-6;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
     
     end
 end

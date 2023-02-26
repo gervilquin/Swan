@@ -62,80 +62,125 @@ classdef MicroBuilder < handle
 
         function fullRHS = createGeneralVector(obj)
             nPerDofs = size(obj.bc.periodic_constrained, 1);
-            perVector = zeros(nPerDofs, 1);
+%             perVector = zeros(nPerDofs, 1);
+            perVector = zeros(3,1);
             uD = obj.bc.dirichlet_values;
-            fullRHS = [obj.RHS; perVector; uD];    
+            fullRHS = [obj.RHS; perVector; uD]; 
         end
 
         function Ct = createConstraintMatrix(obj)
+            %% OLD VERSION
+%             s.dirDOFs        = obj.bc.dirichlet;
+%             s.sizeK          = obj.sizeK;
+%             DirComputer      = DirichletComputer(s);
+%             [CtDir, sizeDir] = DirComputer.compute();
+% %                     [CtDir, sizeDir] = obj.computeDirichletCond();
+%             perDOFslave      = obj.bc.periodic_constrained;
+%             perDOFmaster     = obj.bc.periodic_free;
+%             obj.nConstraints = sizeDir + obj.sizePer;
+% %             obj.nConstraints = obj.sizePer; 
+%             Ct               = zeros(obj.nConstraints, obj.sizeK);
+%             for i = 1:obj.sizePer
+%                 masterNode = perDOFmaster(i);
+%                 slaveNode = perDOFslave(i);
+%                 Ct(i, [masterNode slaveNode]) = [1 -1];
+%             end
+%             Ct(obj.sizePer+1:end, :) = CtDir;
+%             obj.C = Ct;
+
+            %% NEW VERSION WITH MINIMUM CONDITIONS
             s.dirDOFs        = obj.bc.dirichlet;
             s.sizeK          = obj.sizeK;
             DirComputer      = DirichletComputer(s);
             [CtDir, sizeDir] = DirComputer.compute();
-%                     [CtDir, sizeDir] = obj.computeDirichletCond();
+            obj.nConstraints = sizeDir + 3;
+            Ct               = zeros(obj.nConstraints, obj.sizeK);
+            nEqperType = obj.sizePer/4;
             perDOFslave      = obj.bc.periodic_constrained;
             perDOFmaster     = obj.bc.periodic_free;
-            obj.nConstraints = sizeDir + obj.sizePer; 
-            Ct               = zeros(obj.nConstraints, obj.sizeK);
-            for i = 1:obj.sizePer
+            for i = 1:nEqperType
                 masterNode = perDOFmaster(i);
                 slaveNode = perDOFslave(i);
-                Ct(i, [masterNode slaveNode]) = [1 -1];
-            end
-            Ct(obj.sizePer+1:end, :) = CtDir;
-            obj.C = Ct;
-        end
-
-        function [CtDir, sizeDir] = computeDirichletCond(obj)
-            dirDOFs    = obj.bc.dirichlet;
-            sizeDir = size(dirDOFs, 1);
-            CtDir = zeros(sizeDir, obj.sizeK);
-            for i = 1:sizeDir
-                CtDir(i,dirDOFs(i)) = 1; 
-            end
-        end
-
-        function [L, stressHomog] = computeStressHomog(obj, sol)
-            nEqperType = obj.sizePer/4;
-            sigmaX = 0;
-            sigmaY = 0;
-            tauXY  = 0;
-            d1  = obj.sizeK+1;
-            d2  = obj.sizeK + obj.sizePer;
-            L   = sol(d1:end);
-            % first 8: xx
-            for i = 1:nEqperType
-                sigmaX = sigmaX + L(i);
-                 if i == 1
-                    sigXaux = L(i);
-                    sigmaX = sigmaX + sigXaux;
-                end
+                Ct(1, [masterNode slaveNode]) = [1 -1];
             end
             % second 8: xy
             for i = nEqperType+1:2*nEqperType
-                tauXY = tauXY + L(i);
-                if i == nEqperType+1
-                    sigXYaux = L(i);
-                    tauXY = tauXY + sigXYaux;
-                end
+                masterNode = perDOFmaster(i);
+                slaveNode = perDOFslave(i);
+                Ct(2, [masterNode slaveNode]) = [1 -1];                
             end
             % third 8: xy
             for i = 2*nEqperType+1:3*nEqperType
-                tauXY = tauXY + L(i);
-                if i == 2*nEqperType+1
-                    sigXYaux = L(i);
-                    tauXY = tauXY + sigXYaux;
-                end
+                masterNode = perDOFmaster(i);
+                slaveNode = perDOFslave(i);
+                Ct(2, [masterNode slaveNode]) = [1 -1];               
             end
             % last 8: yy
             for i = 3*nEqperType+1:4*nEqperType
-                sigmaY = sigmaY + L(i);
-                if i == 3*nEqperType+1
-                    sigYaux = L(i);
-                    sigmaY = sigmaY + sigYaux;
-                end
-            end        
-            stressHomog = [sigmaX; sigmaY; tauXY/2];
+                masterNode = perDOFmaster(i);
+                slaveNode = perDOFslave(i);
+                Ct(3, [masterNode slaveNode]) = [1 -1];               
+            end
+            Ct(4:end, :) = CtDir;
+            obj.C = Ct;
+        end
+
+%         function [CtDir, sizeDir] = computeDirichletCond(obj)
+%             dirDOFs    = obj.bc.dirichlet;
+%             sizeDir = size(dirDOFs, 1);
+%             CtDir = zeros(sizeDir, obj.sizeK);
+%             for i = 1:sizeDir
+%                 CtDir(i,dirDOFs(i)) = 1; 
+%             end
+%         end
+
+        function [L, stressHomog] = computeStressHomog(obj, sol)
+            %% OLD VERSION POINT PER POINT
+%             nEqperType = obj.sizePer/4;
+%             sigmaX = 0;
+%             sigmaY = 0;
+%             tauXY  = 0;
+%             d1  = obj.sizeK+1;
+%             d2  = obj.sizeK + obj.sizePer;
+%             L   = sol(d1:d2);
+%             % first 8: xx
+%             for i = 1:nEqperType
+%                 sigmaX = sigmaX + L(i);
+%                  if i == 1
+%                     sigXaux = L(i);
+%                     sigmaX = sigmaX + sigXaux;
+%                 end
+%             end
+%             % second 8: xy
+%             for i = nEqperType+1:2*nEqperType
+%                 tauXY = tauXY + L(i);
+%                 if i == nEqperType+1
+%                     sigXYaux = L(i);
+%                     tauXY = tauXY + sigXYaux;
+%                 end
+%             end
+%             % third 8: xy
+%             for i = 2*nEqperType+1:3*nEqperType
+%                 tauXY = tauXY + L(i);
+%                 if i == 2*nEqperType+1
+%                     sigXYaux = L(i);
+%                     tauXY = tauXY + sigXYaux;
+%                 end
+%             end
+%             % last 8: yy
+%             for i = 3*nEqperType+1:4*nEqperType
+%                 sigmaY = sigmaY + L(i);
+%                 if i == 3*nEqperType+1
+%                     sigYaux = L(i);
+%                     sigmaY = sigmaY + sigYaux;
+%                 end
+%             end        
+%             stressHomog = [sigmaX; sigmaY; tauXY/2];
+
+            %% NEW VERSION WITH MINIMUM CONDITIONS
+            d1  = obj.sizeK+1;
+            L = sol(d1:end);
+            stressHomog = [L(1)*9; L(3)*9; L(2)*9];
         end
 
     end
