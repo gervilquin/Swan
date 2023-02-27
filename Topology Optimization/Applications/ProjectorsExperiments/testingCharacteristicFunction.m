@@ -40,7 +40,7 @@ title('L2p1d')
 
 % CharFun to P1 Function in H1 domain
 xx = x;
-xx.projectorType = 'toH1P1';
+xx.projectorType = 'H1P1';
 projH1P1 = Projector.create(xx);
 resCharFunInH1P1 = projH1P1.project(circleFun);
 resCharFunInH1P1.plot(m.mesh);
@@ -48,7 +48,7 @@ resCharFunInH1P1.plot(m.mesh);
 title('H1p1')
 
 % CharFun to P1 Discontinuous Function in H1 domain
-xx.projectorType = 'toH1P1Disc';
+xx.projectorType = 'H1P1D';
 projH1P1D = Projector.create(xx);
 resCharFunInH1P1D = projH1P1D.project(circleFun);
 resCharFunInH1P1D.plot(m.mesh);
@@ -92,8 +92,7 @@ y.mesh = m.mesh;
 y.designVariable = ls;
 filter = Filter.create(y);
 filteredVals = filter.getP1fromP1(fxy);
-z.connec  = m.mesh.connec;
-z.type    = m.mesh.type;
+z.mesh    = m.mesh;
 z.fValues = filteredVals;
 filterToP1 = P1Function(z);
 filterToP1.plot(m.mesh);

@@ -19,12 +19,23 @@ classdef Density < DesignVariable
             v{1} = obj.value;
         end
         
+        function [fun, funNames] = getFunsToPlot(obj)
+            aa.mesh = obj.mesh.meshes{1};
+            aa.fValues = obj.value;
+            valFun = P1Function(aa);
+
+            fun = {valFun};
+            funNames = {'Density'};
+        end
+        
         function rho = computeVolumeFraction(obj)
-            s.connec = obj.mesh.connec;
-            s.type   = obj.mesh.type;
-            s.fNodes = obj.value;
+            s.mesh   = obj.mesh;
+            s.fValues = obj.value;
             f = P1Function(s);
-            rho = f.computeValueInCenterElement();
+            q = Quadrature.set(obj.mesh.type);
+            q.computeQuadrature('CONSTANT');
+            xV = q.posgp;
+            rho = f.evaluate(xV);
         end
         
     end

@@ -3,6 +3,9 @@ classdef ElasticProblem < handle
     properties (Access = public)
         variables
         boundaryConditions
+        uFun
+        strainFun
+        stressFun
     end
 
     properties (Access = private)
@@ -75,16 +78,18 @@ classdef ElasticProblem < handle
         end
        
         function print(obj,filename)
-            s.quad = obj.quadrature;
-            s.mesh = obj.mesh;
-            s.iter = 0;
-            s.fields    = obj.createVariablesToPrint();
-            s.ptype     = obj.ptype;
-            s.ndim      = obj.displacementField.dim.ndimf;
-            s.pdim      = obj.pdim;
-            s.type      = obj.createPrintType();
-            fPrinter = FemPrinter(s);
-            fPrinter.print(filename);
+            [fun, funNames] = obj.getFunsToPlot();
+            a.mesh     = obj.mesh;
+            a.filename = filename;
+            a.fun      = fun;
+            a.funNames = funNames;
+            pst = ParaviewPostprocessor(a);
+            pst.print();
+        end
+
+        function [fun, funNames] = getFunsToPlot(obj)
+            fun = {obj.uFun{:}, obj.strainFun{:}, obj.stressFun{:}};
+            funNames = {'displacement', 'strain', 'stress'};
         end
 
     end
@@ -196,10 +201,10 @@ classdef ElasticProblem < handle
             [u,R] = builder.solveSystem();
             obj.variables.d_u = u;
             obj.variables.React = R;
-%             z.connec = obj.mesh.connec;
-%             z.type   = obj.mesh.type;
-%             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
-%             uFeFun = P1Function(z);
+            z.mesh   = obj.mesh;
+            z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
+            uFeFun = P1Function(z);
+            obj.uFun{end+1} = uFeFun;
         end
 
         function computeStrain(obj)
@@ -211,6 +216,15 @@ classdef ElasticProblem < handle
             scomp  = StrainComputer(s);
             strain = scomp.compute();
             obj.variables.strain = strain;
+            
+%             strFun = obj.uFun.computeSymmetricGradient(obj.quadrature);
+%             strFun.applyVoigtNotation();
+            z.mesh       = obj.mesh;
+            z.fValues    = permute(strain, [2 1 3]);
+            z.quadrature = obj.quadrature;
+            strFun = FGaussDiscontinuousFunction(z);
+
+            obj.strainFun{end+1} = strFun;
         end
 
         function computeStress(obj)
@@ -220,6 +234,23 @@ classdef ElasticProblem < handle
             scomp  = StressComputer(s);
             stress = scomp.compute();
             obj.variables.stress = stress;
+            
+%             strn  = permute(obj.strainFun.fValues,[1 3 2]);
+%             strn2(:,1,:,:) = strn;
+%             stress =squeeze(pagemtimes(obj.material.C,strn2));
+%             stress = permute(stress, [1 3 2]);
+% 
+%             z.mesh    = obj.mesh;
+%             z.fValues = stress;
+%             z.quadrature = obj.quadrature;
+%             strFeFun = FGaussDiscontinuousFunction(z);
+%             obj.stressFun = strFeFun;
+            z.mesh       = obj.mesh;
+            z.fValues    = permute(stress, [2 1 3]);
+            z.quadrature = obj.quadrature;
+            strFun = FGaussDiscontinuousFunction(z);
+
+            obj.stressFun{end+1} = strFun;
         end
 
         function computePrincipalDirection(obj)

@@ -1,54 +1,51 @@
 %% To-do
+% DISCONTINUOUS MESH
+% (0) Check projectors
+% (1) Delete discontinuous meshes
+%       IMPOSSIBLE
+%           - P1DiscontinuousFunction
+%           - Mesh
+%           - Field
+%           - MinimumDiscGradFieldWithVectorInL2
+%               - used for fields
+%       TOUGH
+%           - DehomogenizingSingularitiesTest
+%           - RemeshingTests
+%           - Remesher -> make it disappear from everywhere? only in mesh?
+%           ? SymmetricContMapCondition
+%               - used for connecs, coords
+%               x CoherentOrientationSelector
+%           x LevelSetPeriodicAndOriented
+%       EASY
+%           x SingularitiesFinder
 
-% UML Projectors
-% plot fgaussfun
-% geometry to mesh (jacobian in mesh)
-% BMatComp(dNdx), dndx coming from interp
-% create gradient of function and compSymmVector
-% projectors with unfittedmesh at rhs without it noticing it
+% (2) Delete fields
+% (3) Delete Mesh_Total
 
-% Pending:
-% - Projectors/Filters with Triangle&Quads (figures)
+%% Results
+% FeFunction.project(target)
 
-% Jose: 
-% Done! - Delete element loops of projectors
-% Done! - H1Projection
-% - Clean code of projectors + tests
-% Done! - Use filters in these tests and compare Filters vs L2Projectors vs H1Projectors]
+%% Mid-term
+% - Use FeFunctions in TopOpt_Problem
+% - PDE belongs to Optimizer, not ShapeFunctional
+% - Micro as three elasticity problems
 
+%% Long-term
+% - Move Input folder to a separate repository
+% - Geometry only in Mesh
+% - kill Mesh_Total (UnfittedMesh). still used somewhere but should be
+%   removed
+% - Recuperar gid unfitted mesh photo GiDimagecapturer
+%      density --(project)--> unfittedmesh -> innermesh/photo
 
-%% Changelog
-% 
-
-%% Notes (Ton)
-% Train of thought regarding Geometry/Mesh/Interpolation
-
-%   - Basically, everything is linked up together. Geometry is used as a
-%   flexible tool to perform various actions
-%   - It is also very much dynamic, the same geometry can be re-computed
-%   many times in a single problem with different parameters
-
-%   - When a Mesh is created, a Geometry_Volumetric is also created.
-%   However, nothing else is calculated.
-%   - The calculations are performed when calling computeGeometry(q,int).
-%   Thus, there is no one Jacobian/dNdx: 
-%       - Quad: constant (normals) /linear (linear int) / quadratic (quad
-%       fields)
-%       - Int: linear (mesh) / quadratic (fields)
-
-
-%       - mesh.computeInvJac(q,int)
-
-%   - P1function.computeGradient() or Gradient(p1fun)?! Two distinct use
-%   cases for (sym)gradient (fValues known vs unknown)
-%   - BoundaryConditions defined as functions?!
-
-% Links: testingGradients, P1Function
-% Links: funProblems, FunElasticProblem
-
-%% Next steps
-%
+% - GiDImageCapturer -> some variables should be "user variables", defined
+%   once in a centralized file
 
 %% Backlog
-
-% - Let Paraview print strain as a P1DiscontFunct
+% EXTRAS
+%  - Investigate: converting data to binary format to save read'n'write
+%                 resources for paraview
+%  - Tutorial for printing
+%  - Study file ouptut size vs time (GiD/Paraview) to see which is better
+%    for printing (test + graph)
+%  - Check XY component of fgaussfunctions
