@@ -5,6 +5,7 @@ classdef ReducedBuilder < handle
         lhs
         rhs
         solver
+        dim
     end
 
     methods (Access = public)
@@ -31,6 +32,7 @@ classdef ReducedBuilder < handle
             obj.lhs    = cParams.LHS;
             obj.rhs    = cParams.RHS;
             obj.solver = cParams.solver;
+            obj.dim    = cParams.dim;
         end
 
         function defLHS = createLHS(obj)

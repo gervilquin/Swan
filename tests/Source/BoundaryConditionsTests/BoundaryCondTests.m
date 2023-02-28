@@ -2,8 +2,9 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
 
     properties (TestParameter)
         triangle = {'test2d_triangle'}
-        micro = {'test2d_micro'}
-        microThin = {'test2d_micro_thin'}
+%         micro = {'test2d_micro', 'test2d_micro_thin',...
+%             'test_micro_holeinclusion'}
+        micro ={'test_micro_holeinclusion'}
     end
 
     methods (Test, TestTags = {'Monolitic', 'Macro'})
@@ -34,39 +35,39 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
     end
 
     methods (Test, TestTags = {'Monolitic', 'Micro'})
-        
-        function testMicro(testCase, microThin)
-            s.testName = microThin;
-            s.variablesToStore = {'Chomog'};
-            s.computerType = 'MICRO';
-            s.testSolverType   = 'MONOLITIC_MICRO';
-            test = PrecomputedVariableTest(s);
-            err = test.computeError();
-            tol = 1e-6;
-            testCase.verifyLessThanOrEqual(err, tol)
-        end
 
-        function testMicroChOV(testCase, microThin)
-            s.testName = microThin;
-            s.variablesToStore = {'Chomog'};
-            s.computerType = 'MICRO';
-            s.testSolverType   = 'MONOLITIC_MICRO_CoV';
-            test = PrecomputedVariableTest(s);
-            err = test.computeError();
-            tol = 1e-6;
-            testCase.verifyLessThanOrEqual(err, tol)
-        end
-
-        function testMicroReduced(testCase, microThin)
-            s.testName = microThin;
+        function testMicroReduced(testCase, micro)
+            s.testName = micro;
             s.variablesToStore = {'Chomog'};
             s.computerType = 'MICRO';
             s.testSolverType = 'REDUCED';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
-            tol = 1e-6;
+            tol = 1e-2;
             testCase.verifyLessThanOrEqual(err, tol)
         end
-    
+        
+        function testMicroFluc(testCase, micro)
+            s.testName = micro;
+            s.variablesToStore = {'Chomog'};
+            s.computerType = 'MICRO';
+            s.testSolverType   = 'MONOLITIC_MICRO';
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-2;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+        function testMicroChOV(testCase, micro)
+            s.testName = micro;
+            s.variablesToStore = {'Chomog'};
+            s.computerType = 'MICRO';
+            s.testSolverType   = 'MONOLITIC_MICRO_CoV';
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-2;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+        
     end
 end

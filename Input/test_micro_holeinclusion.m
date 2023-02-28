@@ -748,7 +748,14 @@ connec = [
 %% Variable Prescribed
 % Node            Dimension                Value
 
-lnodes = [
+dirichlet_data = [1 1 0
+    1 2 0
+    204 1 0
+    204 2 0
+    205 1 0
+    205 2 0
+    265 1 0
+    265 2 0
 ];
 
 %% Force Prescribed
@@ -795,8 +802,32 @@ Micro_gauss_post = [
 % Nodes that are Slaves
 % Nodes             Value (1-Slave,0-Master)
 
-Micro_slave = [
-];
+Micro_slave = [3	207
+            6	212
+            11	215
+            18	217
+            26	224
+            36	231
+            50	236
+            68	242
+            89	247
+            107	253
+            129	257
+            157	261
+            182	263
+            2	208
+            5	213
+            10	216
+            17	218
+            25	225
+            35	232
+            49	237
+            67	243
+            88	248
+            106	254
+            128	258
+            156	262
+            181	264];
 
 %% Nodes solid
 % Nodes that must remain 

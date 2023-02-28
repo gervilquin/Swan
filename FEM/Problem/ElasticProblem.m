@@ -194,6 +194,7 @@ classdef ElasticProblem < handle
             s.solver      = obj.solver;
             s.scale       = obj.scale;
             s.mesh        = obj.mesh;
+            s.dim         = obj.displacementField.dim;
             if isprop(obj, 'vstrain')
                 s.vstrain = obj.vstrain;
             end
