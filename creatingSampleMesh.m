@@ -12,6 +12,8 @@ s.connec = conn;
 mesh = Mesh(s);
 mesh.computeMasterSlaveNodes();
 
+
+
 nNodes = size(s.coord, 1);
 coordsDef = zeros(nNodes, 4);
 
