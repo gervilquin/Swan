@@ -24,7 +24,7 @@ classdef MicroBuilder < handle
             defRHS = obj.createRHS();
             sol = obj.solver.solve(defLHS, defRHS);
             u   = sol(1:obj.sizeK, 1);
-            [L, stressHomog] = obj.computeStressHomog(sol);
+            [L, LDir, stressHomog] = obj.computeStressHomog(sol);
         end
 
     end
@@ -93,7 +93,7 @@ classdef MicroBuilder < handle
 %             end
 %         end
 
-        function [L, stressHomog] = computeStressHomog(obj, sol)
+        function [L,  LDir, stressHomog] = computeStressHomog(obj, sol)
             nEqperType = obj.sizePer/4;
             sigmaX = 0;
             sigmaY = 0;
@@ -122,7 +122,6 @@ classdef MicroBuilder < handle
             sigmaY = sigmaY + LDir(2) + LDir(4);
             tauXY = (tauXY + LDir(6) + LDir(3) - LDir(7) - LDir(8))/2;
             stressHomog = [sigmaX; sigmaY; tauXY];
-
         end
 
     end

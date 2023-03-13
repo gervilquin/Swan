@@ -23,7 +23,7 @@ classdef MicroBuilderCoV < handle
             defRHS      = obj.createRHS();
             sol         = obj.solver.solve(defLHS, defRHS);
             u           = sol(1:obj.sizeK, 1);
-            [L, stressHomog] = obj.computeStressHomog(sol);
+            [L, LDir, stressHomog] = obj.computeStressHomog(sol);
         end
 
     end
@@ -57,7 +57,8 @@ classdef MicroBuilderCoV < handle
             Km      = obj.LHS;
             fullLHS = [Km C; C' Z];
         end
-        
+
+        %% OLD VERSION: POINT PER POINT 3 EQUATION STYLE. 
         function fullRHS = createGeneralVector(obj)
             nU        = size(obj.LHS, 1);
             der1Rhs   = zeros(nU, 1);
@@ -65,7 +66,7 @@ classdef MicroBuilderCoV < handle
             nEqperType = obj.sizePer/4;
             perVector    = zeros(nEqperType*3, 1);
             for i = 1:nEqperType
-                perVector(i, 1) = obj.vstrain(1);
+                perVector(i, 1) = -obj.vstrain(1);
             end
             % second 39
             for i = nEqperType+1:2*nEqperType
@@ -73,7 +74,7 @@ classdef MicroBuilderCoV < handle
             end
             % third 39
             for i = 2*nEqperType+1:3*nEqperType
-                perVector(i, 1) = obj.vstrain(2);
+                perVector(i, 1) = -obj.vstrain(2);
             end
             fullRHS   = [der1Rhs; perVector; uD];
         end
@@ -112,6 +113,7 @@ classdef MicroBuilderCoV < handle
                 masterDOF = perDOFmaster(i);
                 slaveDOF = perDOFslave(i);
                 positionCt = i-nEqperType;
+%                 positionCt = 4*nEqperType+1-i;
                 Ct(positionCt, [masterDOF slaveDOF]) = [1 -1];
             end
             %last 39
@@ -125,7 +127,7 @@ classdef MicroBuilderCoV < handle
             Ct(nEqperType*3+1:end, :) = CtDir;
         end
 
-        function [L, stressHomog] = computeStressHomog(obj, sol)
+        function [L, LDir, stressHomog] = computeStressHomog(obj, sol)
             % reformulation starts here
             nEqperType = obj.sizePer/4;
             Lx  = 0;
@@ -134,6 +136,7 @@ classdef MicroBuilderCoV < handle
             d1  = obj.sizeK+1;
             d2  = obj.sizeK + nEqperType*3;
             L   = sol(d1:d2);
+            LDir = sol(d2+1:end);
             for i = 1:nEqperType
                 Lx = Lx + L(i);
             end
@@ -147,6 +150,140 @@ classdef MicroBuilderCoV < handle
             end
             stressHomog = -[Lx; Ly; Lxy];
         end
+
+%% NEW VERSION: POINT PER POINT WITHOUT IMPLEMENTING 3RD EQ.
+% 
+%         function Ct = createConstraintMatrix(obj)
+%             s.dirDOFs        = obj.bc.dirichlet;
+%             s.sizeK          = obj.sizeK;
+%             DirComputer      = DirichletComputer(s);
+%             [CtDir, obj.sizeDir] = DirComputer.compute();
+%             perDOFslave      = obj.bc.periodic_constrained;
+%             perDOFmaster     = obj.bc.periodic_free;
+%             obj.nConstraints = obj.sizeDir + obj.sizePer; 
+%             Ct               = zeros(obj.nConstraints, obj.sizeK);
+%             for i = 1:obj.sizePer
+%                 masterNode = perDOFmaster(i);
+%                 slaveNode = perDOFslave(i);
+%                 Ct(i, [masterNode slaveNode]) = [1 -1];
+%             end
+%             Ct(obj.sizePer+1:end, :) = CtDir;
+%         end
+% 
+% %         function [CtDir, sizeDir] = computeDirichletCond(obj)
+% %             dirDOFs    = obj.bc.dirichlet;
+% %             sizeDir = size(dirDOFs, 1);
+% %             CtDir = zeros(sizeDir, obj.sizeK);
+% %             for i = 1:sizeDir
+% %                 CtDir(i,dirDOFs(i)) = 1; 
+% %             end
+% %         end
+% 
+%         function [L, stressHomog] = computeStressHomog(obj, sol)
+%             nEqperType = obj.sizePer/4;
+%             sigmaX = 0;
+%             sigmaY = 0;
+%             tauXY  = 0;
+%             d1  = obj.sizeK+1;
+%             d2  = obj.sizeK + obj.sizePer;
+%             L   = sol(d1:d2);
+%             LDir = sol(d2+1:end);
+%             % first 8: xx
+%             for i = 1:nEqperType
+%                 sigmaX = sigmaX + L(i);
+%             end
+%             % second 8: xy
+%             for i = nEqperType+1:2*nEqperType
+%                 tauXY = tauXY + L(i);
+%             end
+%             % third 8: xy
+%             for i = 2*nEqperType+1:3*nEqperType
+%                 tauXY = tauXY + L(i);
+%             end
+%             % last 8: yy
+%             for i = 3*nEqperType+1:4*nEqperType
+%                 sigmaY = sigmaY + L(i);
+%             end
+%             stressHomog = -[sigmaX; sigmaY; tauXY/2];
+%         end
+% 
+%         function fullRHS = createGeneralVector(obj)
+%             nU        = size(obj.LHS, 1);
+%             der1Rhs   = zeros(nU, 1);
+%             uD        = obj.bc.dirichlet_values;
+%             nEqperType = obj.sizePer/4;
+%             perVector    = zeros(nEqperType*4, 1);
+%             for i = 1:nEqperType
+%                 perVector(i, 1) = obj.vstrain(1);
+%             end
+%             % second 39
+%             for i = nEqperType+1:2*nEqperType
+%                 perVector(i, 1) = obj.vstrain(3);
+%             end
+%             % third 39
+%             for i = 2*nEqperType+1:3*nEqperType
+%                 perVector(i, 1) = obj.vstrain(3);
+%             end
+%             % last 39
+%             for i = 3*nEqperType+1:4*nEqperType
+%                 perVector(i, 1) = obj.vstrain(2);
+%             end
+%             fullRHS   = [der1Rhs; perVector; uD];
+%         end
+
+%% NEW VERSION WITH MINIMUM CONDITIONS
+%         function Ct = createConstraintMatrix(obj)
+%             s.dirDOFs        = obj.bc.dirichlet;
+%             s.sizeK          = obj.sizeK;
+%             DirComputer      = DirichletComputer(s);
+%             [CtDir, obj.sizeDir] = DirComputer.compute();
+%             obj.nConstraints = obj.sizeDir + 3;
+%             Ct               = zeros(obj.nConstraints, obj.sizeK);
+%             nEqperType = obj.sizePer/4;
+%             perDOFslave      = obj.bc.periodic_constrained;
+%             perDOFmaster     = obj.bc.periodic_free;
+%             for i = 1:nEqperType
+%                 masterNode = perDOFmaster(i);
+%                 slaveNode = perDOFslave(i);
+%                 Ct(1, [masterNode slaveNode]) = [1 -1];
+%             end
+%             % second 8: xy
+%             for i = nEqperType+1:2*nEqperType
+%                 masterNode = perDOFmaster(i);
+%                 slaveNode = perDOFslave(i);
+%                 Ct(2, [masterNode slaveNode]) = [1 -1];                
+%             end
+%             % third 8: xy
+%             for i = 2*nEqperType+1:3*nEqperType
+%                 masterNode = perDOFmaster(i);
+%                 slaveNode = perDOFslave(i);
+%                 Ct(2, [masterNode slaveNode]) = [1 -1];               
+%             end
+%             % last 8: yy
+%             for i = 3*nEqperType+1:4*nEqperType
+%                 masterNode = perDOFmaster(i);
+%                 slaveNode = perDOFslave(i);
+%                 Ct(3, [masterNode slaveNode]) = [1 -1];               
+%             end
+%             Ct(4:end, :) = CtDir;
+%         end
+% 
+%         function fullRHS = createGeneralVector(obj)
+%             nPerDofs = size(obj.bc.periodic_constrained, 1);
+% %             perVector = zeros(nPerDofs, 1);
+%             perVector = [obj.vstrain(1); obj.vstrain(3); obj.vstrain(2)]; 
+%             uD = obj.bc.dirichlet_values;
+%             nU        = size(obj.LHS, 1);
+%             der1Rhs   = zeros(nU, 1);
+%             fullRHS = [der1Rhs; perVector; uD]; 
+%         end
+% 
+%         function [L, stressHomog] = computeStressHomog(obj, sol)
+%             d1  = obj.sizeK+1;
+%             nEqperType = obj.sizePer/4;
+%             L = sol(d1:end);
+%             stressHomog = [L(1)*(nEqperType+1); L(3)*(nEqperType+1); L(2)*(nEqperType+1)];
+%         end
     end
 
 end
