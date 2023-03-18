@@ -58,8 +58,10 @@ uFun.plot()
 fV = zeros(obj.mesh.nnodes*2,1);
 dofsM1 = obj.bc.periodic_free(1:13);
 dofsM2 = obj.bc.periodic_free(end-12:end);
-fV(dofsM1) = L(1:13);
-fV(dofsM2) = L(end-12:end);
+% fV(dofsM1) = L(1:13);
+% fV(dofsM2) = L(end-12:end);
+fV(dofsM1) = L(14:26);
+fV(dofsM2) = L(27:39);
 fVlambdasRshp = reshape(fV, [2 265]);
 a.fValues = fVlambdasRshp';
 a.mesh = obj.mesh;
@@ -83,12 +85,17 @@ a.fValues = ltot;
 allLp1f = P1Function(a);
 allLp1f.plot
 
+% Print GiD results: Lagrange multipliers
+a.filename = 'LagrangeGiDFirst';
+allLp1f.print(a);
+
 % Print GiD results: Fluctuations
-b.filename = 'DisplacementsGiD2';
-fVrshp = reshape(u, [2 265]);
+b.filename = 'DisplacementsGiDFirst';
+fVrshp = reshape(uTotal, [2 265]);
 b.mesh = obj.mesh;
 b.fValues = fVrshp';
 gidPrint = P1Function(b);
 gidPrint.print(b);
+
 
 

@@ -70,7 +70,7 @@ classdef MicroBuilderCoV < handle
             end
             % second 39
             for i = nEqperType+1:2*nEqperType
-                perVector(i, 1) = obj.vstrain(3);
+                perVector(i, 1) = -obj.vstrain(3);
             end
             % third 39
             for i = 2*nEqperType+1:3*nEqperType
@@ -148,7 +148,7 @@ classdef MicroBuilderCoV < handle
             for i = 2*nEqperType+1:3*nEqperType
                 Ly = Ly + L(i);
             end
-            stressHomog = -[Lx; Ly; Lxy];
+            stressHomog = [Lx; Ly; Lxy];
         end
 
 %% NEW VERSION: POINT PER POINT WITHOUT IMPLEMENTING 3RD EQ.

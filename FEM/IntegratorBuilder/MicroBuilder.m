@@ -11,7 +11,7 @@ classdef MicroBuilder < handle
         scale
         sizePer
         mesh
-        C
+        vstrain
     end
 
     methods (Access = public)
@@ -25,6 +25,7 @@ classdef MicroBuilder < handle
             sol = obj.solver.solve(defLHS, defRHS);
             u   = sol(1:obj.sizeK, 1);
             [L, LDir, stressHomog] = obj.computeStressHomog(sol);
+            uTotal = obj.computeTotalDisplacements(u);
         end
 
     end
@@ -38,6 +39,7 @@ classdef MicroBuilder < handle
             obj.solver  = cParams.solver;
             obj.scale   = cParams.scale;
             obj.mesh    = cParams.mesh;
+            obj.vstrain = cParams.vstrain;
             perDOFslave = obj.bc.periodic_constrained;
             obj.sizePer = size(perDOFslave, 1);
         end
@@ -81,7 +83,6 @@ classdef MicroBuilder < handle
                 Ct(i, [masterNode slaveNode]) = [1 -1];
             end
             Ct(obj.sizePer+1:end, :) = CtDir;
-            obj.C = Ct;
         end
 
 %         function [CtDir, sizeDir] = computeDirichletCond(obj)
@@ -122,6 +123,22 @@ classdef MicroBuilder < handle
             sigmaY = sigmaY + LDir(2) + LDir(4);
             tauXY = (tauXY + LDir(6) + LDir(3) - LDir(7) - LDir(8))/2;
             stressHomog = [sigmaX; sigmaY; tauXY];
+        end
+
+        function uTotal = computeTotalDisplacements(obj, u)
+            coords = obj.mesh.coord';
+            nel = size(coords, 2);
+            strainM = [obj.vstrain(1) obj.vstrain(3); 
+                obj.vstrain(3) obj.vstrain(2)];
+            uTotal = zeros(obj.sizeK, 1);
+            for i=1:nel
+                uTotal([2*i-1 2*i], 1) = strainM*coords(:, i);
+            end
+            % add fluctuations (initial value pending)
+            uTotal = uTotal + u;
+            [minU, maxU] = bounds(uTotal);
+            av = (minU+maxU)/2;
+            uTotal = uTotal - av;
         end
 
     end
