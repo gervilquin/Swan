@@ -61,7 +61,7 @@ dofsM2 = obj.bc.periodic_free(end-12:end);
 % fV(dofsM1) = L(1:13);
 % fV(dofsM2) = L(end-12:end);
 fV(dofsM1) = L(14:26);
-fV(dofsM2) = L(27:39);
+% fV(dofsM2) = L(27:39);
 fVlambdasRshp = reshape(fV, [2 265]);
 a.fValues = fVlambdasRshp';
 a.mesh = obj.mesh;
@@ -91,7 +91,7 @@ allLp1f.print(a);
 
 % Print GiD results: Fluctuations
 b.filename = 'DisplacementsGiDFirst';
-fVrshp = reshape(uTotal, [2 265]);
+fVrshp = reshape(u, [2 265]);
 b.mesh = obj.mesh;
 b.fValues = fVrshp';
 gidPrint = P1Function(b);

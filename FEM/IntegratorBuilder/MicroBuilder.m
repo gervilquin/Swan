@@ -135,10 +135,11 @@ classdef MicroBuilder < handle
                 uTotal([2*i-1 2*i], 1) = strainM*coords(:, i);
             end
             % add fluctuations (initial value pending)
-            uTotal = uTotal + u;
-            [minU, maxU] = bounds(uTotal);
-            av = (minU+maxU)/2;
-            uTotal = uTotal - av;
+%             uTotal = uTotal + u;
+%             av = (minU+maxU)/2;
+%             uTotal = uTotal - av;
+            % fix dirichlet displacements
+%             uTotal(obj.bc.dirichlet) = 0;
         end
 
     end

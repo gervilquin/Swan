@@ -24,6 +24,7 @@ classdef MicroBuilderCoV < handle
             sol         = obj.solver.solve(defLHS, defRHS);
             u           = sol(1:obj.sizeK, 1);
             [L, LDir, stressHomog] = obj.computeStressHomog(sol);
+            uTotal = obj.computeTotalDisplacements(u);
         end
 
     end
@@ -76,21 +77,38 @@ classdef MicroBuilderCoV < handle
             for i = 2*nEqperType+1:3*nEqperType
                 perVector(i, 1) = -obj.vstrain(2);
             end
-            fullRHS   = [der1Rhs; perVector; uD];
+%             fullRHS   = [der1Rhs; perVector; uD];
+            PerDirRhs = [-1; -1];
+            DirRhs = zeros(6,1);
+            fullRHS   = [der1Rhs; perVector; PerDirRhs; DirRhs];
         end
 
         function Ct = createConstraintMatrix(obj)
             s.dirDOFs        = obj.bc.dirichlet;
             s.sizeK          = obj.sizeK;
             DirComputer      = DirichletComputer(s);
-            [CtDir, obj.sizeDir] = DirComputer.compute();
+%             [CtDir, obj.sizeDir] = DirComputer.compute();
+            %only fix nodes on left edges
+            CtDir = zeros(6, obj.sizeK);
+            CtDir(1,1) = 1;
+            CtDir(2,2) = 1;
+            CtDir(3,409) = 1;
+            CtDir(4,410) = 1;
+            CtDir(5,408) = 1;
+            CtDir(6,530) = 1;
+            CtPerDir = zeros(2, obj.sizeK);
+            CtPerDir(1,[1, 407]) = [1 -1];
+            CtPerDir(2,[409, 529]) = [1 -1];
+%             CtPerDir(3,[2, 410]) = [1 -1];
+%             CtPerDir(4,[408, 530]) = [1 -1];
             %reformulation starts here
             perDOFmaster = obj.bc.periodic_free;
             perDOFslave  = obj.bc.periodic_constrained;
             nEqperType = obj.sizePer/4;
-            obj.nConstraints = obj.sizeDir + nEqperType*3; 
-            Ct = zeros(nEqperType*3 + obj.sizeDir, obj.sizeK);
-%             Ct = zeros(nEqperType*3, obj.sizeK);
+%             obj.nConstraints = obj.sizeDir + nEqperType*3; 
+            obj.nConstraints = 8 + nEqperType*3; 
+%             Ct = zeros(nEqperType*3 + obj.sizeDir, obj.sizeK);
+            Ct = zeros(nEqperType*3+8, obj.sizeK);
             pX = zeros(nEqperType, 1);
             pY = zeros(nEqperType, 1);
             pXY = zeros(nEqperType, 1); 
@@ -124,7 +142,7 @@ classdef MicroBuilderCoV < handle
                 pY(i-3*nEqperType) = positionCt;
                 Ct(positionCt, [masterDOF slaveDOF]) = [1 -1];
             end
-            Ct(nEqperType*3+1:end, :) = CtDir;
+            Ct(nEqperType*3+1:end, :) = [CtPerDir; CtDir];
         end
 
         function [L, LDir, stressHomog] = computeStressHomog(obj, sol)
@@ -284,6 +302,22 @@ classdef MicroBuilderCoV < handle
 %             L = sol(d1:end);
 %             stressHomog = [L(1)*(nEqperType+1); L(3)*(nEqperType+1); L(2)*(nEqperType+1)];
 %         end
+        function uTotal = computeTotalDisplacements(obj, u)
+            coords = obj.mesh.coord';
+            nel = size(coords, 2);
+            strainM = [obj.vstrain(1) obj.vstrain(3); 
+                obj.vstrain(3) obj.vstrain(2)];
+            uTotal = zeros(obj.sizeK, 1);
+            for i=1:nel
+                uTotal([2*i-1 2*i], 1) = strainM*coords(:, i);
+            end
+            % add fluctuations (initial value pending)
+%             uTotal = u - uTotal;
+%             av = (minU+maxU)/2;
+%             uTotal = uTotal - av;
+            % fix dirichlet displacements
+%             uTotal(obj.bc.dirichlet) = 0;
+        end
     end
 
 end
