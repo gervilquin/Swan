@@ -11,6 +11,7 @@ classdef MicroBuilderCoV < handle
         sizeDir
         sizePer
         vstrain
+        ConditionSetter
     end
 
     methods (Access = public)
@@ -40,6 +41,11 @@ classdef MicroBuilderCoV < handle
             obj.vstrain = cParams.vstrain;
             perDOFslave = obj.bc.periodic_constrained;
             obj.sizePer = size(perDOFslave, 1);
+            s.dirDOFs        = obj.bc.dirichlet;
+            s.sizeK          = obj.sizeK;
+            s.vstrain        = obj.vstrain;
+            s.mesh           = obj.mesh;
+            obj.ConditionSetter = GlobalDofSetter(s);
         end
 
         function defLHS = createLHS(obj)
@@ -58,8 +64,7 @@ classdef MicroBuilderCoV < handle
             Km      = obj.LHS;
             fullLHS = [Km C; C' Z];
         end
-
-        %% OLD VERSION: POINT PER POINT 3 EQUATION STYLE. 
+ 
         function fullRHS = createGeneralVector(obj)
             nU        = size(obj.LHS, 1);
             der1Rhs   = zeros(nU, 1);
@@ -78,37 +83,43 @@ classdef MicroBuilderCoV < handle
                 perVector(i, 1) = -obj.vstrain(2);
             end
 %             fullRHS   = [der1Rhs; perVector; uD];
-            PerDirRhs = [-1; -1];
-            DirRhs = zeros(6,1);
-            fullRHS   = [der1Rhs; perVector; PerDirRhs; DirRhs];
+            % implement new GlobalDofSetter class
+            [RHSDir, RHSDirPer] = obj.ConditionSetter.setDirichletRhs();
+            fullRHS   = [der1Rhs; perVector; RHSDirPer; RHSDir];
+
+%             PerDirRhs = [-1; -1];
+%             DirRhs = zeros(6,1);
+%             fullRHS   = [der1Rhs; perVector; PerDirRhs; DirRhs];
         end
 
         function Ct = createConstraintMatrix(obj)
-            s.dirDOFs        = obj.bc.dirichlet;
-            s.sizeK          = obj.sizeK;
-            DirComputer      = DirichletComputer(s);
+%             s.dirDOFs        = obj.bc.dirichlet;
+%             s.sizeK          = obj.sizeK;
+%             s.vstrain        = obj.vstrain;
+%             s.mesh           = obj.mesh;
+%             DirComputer      = DirichletComputer(s);
+            % implement new GlobalDofSetter class
+            [CtDir, CtPerDir] = obj.ConditionSetter.setDirichletLhs();
 %             [CtDir, obj.sizeDir] = DirComputer.compute();
             %only fix nodes on left edges
-            CtDir = zeros(6, obj.sizeK);
-            CtDir(1,1) = 1;
-            CtDir(2,2) = 1;
-            CtDir(3,409) = 1;
-            CtDir(4,410) = 1;
-            CtDir(5,408) = 1;
-            CtDir(6,530) = 1;
-            CtPerDir = zeros(2, obj.sizeK);
-            CtPerDir(1,[1, 407]) = [1 -1];
-            CtPerDir(2,[409, 529]) = [1 -1];
-%             CtPerDir(3,[2, 410]) = [1 -1];
-%             CtPerDir(4,[408, 530]) = [1 -1];
+%             CtDir = zeros(6, obj.sizeK);
+%             CtDir(1,1) = 1;
+%             CtDir(2,2) = 1;
+%             CtDir(3,409) = 1;
+%             CtDir(4,410) = 1;
+%             CtDir(5,408) = 1;
+%             CtDir(6,530) = 1;
+%             CtPerDir = zeros(2, obj.sizeK);
+%             CtPerDir(1,[1, 407]) = [1 -1];
+%             CtPerDir(2,[409, 529]) = [1 -1];
             %reformulation starts here
             perDOFmaster = obj.bc.periodic_free;
             perDOFslave  = obj.bc.periodic_constrained;
             nEqperType = obj.sizePer/4;
 %             obj.nConstraints = obj.sizeDir + nEqperType*3; 
-            obj.nConstraints = 8 + nEqperType*3; 
+            obj.nConstraints = size(CtDir, 1)+ size(CtPerDir, 1) + nEqperType*3; 
 %             Ct = zeros(nEqperType*3 + obj.sizeDir, obj.sizeK);
-            Ct = zeros(nEqperType*3+8, obj.sizeK);
+            Ct = zeros(nEqperType*3+size(CtDir, 1)+ size(CtPerDir, 1), obj.sizeK);
             pX = zeros(nEqperType, 1);
             pY = zeros(nEqperType, 1);
             pXY = zeros(nEqperType, 1); 
@@ -166,143 +177,19 @@ classdef MicroBuilderCoV < handle
             for i = 2*nEqperType+1:3*nEqperType
                 Ly = Ly + L(i);
             end
+
+            if obj.vstrain(1) == 1
+                Lx = Lx + LDir(1) + LDir(2) + LDir(3) + LDir(5);
+                Ly = Ly + LDir(4) + LDir(7);
+            elseif obj.vstrain(2) == 1
+                Ly = Ly + LDir(1) + LDir(2) + LDir(4) + LDir(6);
+                Lx = Lx + LDir(3) + LDir(7);                
+            else
+            end
             stressHomog = [Lx; Ly; Lxy];
         end
 
-%% NEW VERSION: POINT PER POINT WITHOUT IMPLEMENTING 3RD EQ.
-% 
-%         function Ct = createConstraintMatrix(obj)
-%             s.dirDOFs        = obj.bc.dirichlet;
-%             s.sizeK          = obj.sizeK;
-%             DirComputer      = DirichletComputer(s);
-%             [CtDir, obj.sizeDir] = DirComputer.compute();
-%             perDOFslave      = obj.bc.periodic_constrained;
-%             perDOFmaster     = obj.bc.periodic_free;
-%             obj.nConstraints = obj.sizeDir + obj.sizePer; 
-%             Ct               = zeros(obj.nConstraints, obj.sizeK);
-%             for i = 1:obj.sizePer
-%                 masterNode = perDOFmaster(i);
-%                 slaveNode = perDOFslave(i);
-%                 Ct(i, [masterNode slaveNode]) = [1 -1];
-%             end
-%             Ct(obj.sizePer+1:end, :) = CtDir;
-%         end
-% 
-% %         function [CtDir, sizeDir] = computeDirichletCond(obj)
-% %             dirDOFs    = obj.bc.dirichlet;
-% %             sizeDir = size(dirDOFs, 1);
-% %             CtDir = zeros(sizeDir, obj.sizeK);
-% %             for i = 1:sizeDir
-% %                 CtDir(i,dirDOFs(i)) = 1; 
-% %             end
-% %         end
-% 
-%         function [L, stressHomog] = computeStressHomog(obj, sol)
-%             nEqperType = obj.sizePer/4;
-%             sigmaX = 0;
-%             sigmaY = 0;
-%             tauXY  = 0;
-%             d1  = obj.sizeK+1;
-%             d2  = obj.sizeK + obj.sizePer;
-%             L   = sol(d1:d2);
-%             LDir = sol(d2+1:end);
-%             % first 8: xx
-%             for i = 1:nEqperType
-%                 sigmaX = sigmaX + L(i);
-%             end
-%             % second 8: xy
-%             for i = nEqperType+1:2*nEqperType
-%                 tauXY = tauXY + L(i);
-%             end
-%             % third 8: xy
-%             for i = 2*nEqperType+1:3*nEqperType
-%                 tauXY = tauXY + L(i);
-%             end
-%             % last 8: yy
-%             for i = 3*nEqperType+1:4*nEqperType
-%                 sigmaY = sigmaY + L(i);
-%             end
-%             stressHomog = -[sigmaX; sigmaY; tauXY/2];
-%         end
-% 
-%         function fullRHS = createGeneralVector(obj)
-%             nU        = size(obj.LHS, 1);
-%             der1Rhs   = zeros(nU, 1);
-%             uD        = obj.bc.dirichlet_values;
-%             nEqperType = obj.sizePer/4;
-%             perVector    = zeros(nEqperType*4, 1);
-%             for i = 1:nEqperType
-%                 perVector(i, 1) = obj.vstrain(1);
-%             end
-%             % second 39
-%             for i = nEqperType+1:2*nEqperType
-%                 perVector(i, 1) = obj.vstrain(3);
-%             end
-%             % third 39
-%             for i = 2*nEqperType+1:3*nEqperType
-%                 perVector(i, 1) = obj.vstrain(3);
-%             end
-%             % last 39
-%             for i = 3*nEqperType+1:4*nEqperType
-%                 perVector(i, 1) = obj.vstrain(2);
-%             end
-%             fullRHS   = [der1Rhs; perVector; uD];
-%         end
-
-%% NEW VERSION WITH MINIMUM CONDITIONS
-%         function Ct = createConstraintMatrix(obj)
-%             s.dirDOFs        = obj.bc.dirichlet;
-%             s.sizeK          = obj.sizeK;
-%             DirComputer      = DirichletComputer(s);
-%             [CtDir, obj.sizeDir] = DirComputer.compute();
-%             obj.nConstraints = obj.sizeDir + 3;
-%             Ct               = zeros(obj.nConstraints, obj.sizeK);
-%             nEqperType = obj.sizePer/4;
-%             perDOFslave      = obj.bc.periodic_constrained;
-%             perDOFmaster     = obj.bc.periodic_free;
-%             for i = 1:nEqperType
-%                 masterNode = perDOFmaster(i);
-%                 slaveNode = perDOFslave(i);
-%                 Ct(1, [masterNode slaveNode]) = [1 -1];
-%             end
-%             % second 8: xy
-%             for i = nEqperType+1:2*nEqperType
-%                 masterNode = perDOFmaster(i);
-%                 slaveNode = perDOFslave(i);
-%                 Ct(2, [masterNode slaveNode]) = [1 -1];                
-%             end
-%             % third 8: xy
-%             for i = 2*nEqperType+1:3*nEqperType
-%                 masterNode = perDOFmaster(i);
-%                 slaveNode = perDOFslave(i);
-%                 Ct(2, [masterNode slaveNode]) = [1 -1];               
-%             end
-%             % last 8: yy
-%             for i = 3*nEqperType+1:4*nEqperType
-%                 masterNode = perDOFmaster(i);
-%                 slaveNode = perDOFslave(i);
-%                 Ct(3, [masterNode slaveNode]) = [1 -1];               
-%             end
-%             Ct(4:end, :) = CtDir;
-%         end
-% 
-%         function fullRHS = createGeneralVector(obj)
-%             nPerDofs = size(obj.bc.periodic_constrained, 1);
-% %             perVector = zeros(nPerDofs, 1);
-%             perVector = [obj.vstrain(1); obj.vstrain(3); obj.vstrain(2)]; 
-%             uD = obj.bc.dirichlet_values;
-%             nU        = size(obj.LHS, 1);
-%             der1Rhs   = zeros(nU, 1);
-%             fullRHS = [der1Rhs; perVector; uD]; 
-%         end
-% 
-%         function [L, stressHomog] = computeStressHomog(obj, sol)
-%             d1  = obj.sizeK+1;
-%             nEqperType = obj.sizePer/4;
-%             L = sol(d1:end);
-%             stressHomog = [L(1)*(nEqperType+1); L(3)*(nEqperType+1); L(2)*(nEqperType+1)];
-%         end
-        function uTotal = computeTotalDisplacements(obj, u)
+        function fluct = computeTotalDisplacements(obj, u)
             coords = obj.mesh.coord';
             nel = size(coords, 2);
             strainM = [obj.vstrain(1) obj.vstrain(3); 
@@ -311,12 +198,7 @@ classdef MicroBuilderCoV < handle
             for i=1:nel
                 uTotal([2*i-1 2*i], 1) = strainM*coords(:, i);
             end
-            % add fluctuations (initial value pending)
-%             uTotal = u - uTotal;
-%             av = (minU+maxU)/2;
-%             uTotal = uTotal - av;
-            % fix dirichlet displacements
-%             uTotal(obj.bc.dirichlet) = 0;
+            fluct = u - uTotal;
         end
     end
 
