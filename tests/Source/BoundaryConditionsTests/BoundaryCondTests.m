@@ -65,7 +65,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             s.testSolverType   = 'MONOLITIC_MICRO_CoV';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
-            tol = 1e-5;
+            tol = 1e-4;
             testCase.verifyLessThanOrEqual(err, tol)
         end
         

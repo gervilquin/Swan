@@ -185,6 +185,7 @@ classdef MicroBuilderCoV < handle
                 Ly = Ly + LDir(1) + LDir(2) + LDir(4) + LDir(6);
                 Lx = Lx + LDir(3) + LDir(7);                
             else
+                Lxy = Lxy + LDir(1) + LDir(2);
             end
             stressHomog = [Lx; Ly; Lxy];
         end
@@ -192,8 +193,8 @@ classdef MicroBuilderCoV < handle
         function fluct = computeTotalDisplacements(obj, u)
             coords = obj.mesh.coord';
             nel = size(coords, 2);
-            strainM = [obj.vstrain(1) obj.vstrain(3); 
-                obj.vstrain(3) obj.vstrain(2)];
+            strainM = [obj.vstrain(1) obj.vstrain(3)/2; 
+                obj.vstrain(3)/2 obj.vstrain(2)];
             uTotal = zeros(obj.sizeK, 1);
             for i=1:nel
                 uTotal([2*i-1 2*i], 1) = strainM*coords(:, i);

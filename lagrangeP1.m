@@ -69,7 +69,27 @@ lFun = P1Function(a);
 
 % Dirichlet L plot - OK
 dofsD = obj.bc.dirichlet;
-lambdaD = LDir;
+sDir = size(obj.bc.dirichlet, 1);
+lambdaD = zeros(sDir, 1);
+if obj.vstrain(1) == 1
+    lambdaD(1) = LDir(1) + LDir(3);
+    lambdaD(2) = LDir(4);
+    lambdaD(4) = LDir(7);
+    lambdaD(5) = LDir(2) + LDir(5);
+    lambdaD(6) = LDir(6);
+    lambdaD(8) = LDir(8);
+elseif obj.vstrain(2) == 1
+    lambdaD(1) = LDir(3);
+    lambdaD(2) = LDir(1) + LDir(4);
+    lambdaD(3) = LDir(5);
+    lambdaD(4) = LDir(2) + LDir(6);
+    lambdaD(5) = LDir(7);
+    lambdaD(7) = LDir(8);
+else
+    lambdaD(1) = LDir(1);
+    lambdaD(5) = LDir(2);
+end
+% lambdaD = LDir;
 fVlambdas = zeros(obj.mesh.nnodes*2, 1);
 fVlambdas(dofsD) = lambdaD;
 fVlambdasRshp = reshape(fVlambdas, [2 265]);
@@ -91,7 +111,7 @@ allLp1f.print(a);
 
 % Print GiD results: Fluctuations
 b.filename = 'DisplacementsGiDFirst';
-fVrshp = reshape(u, [2 265]);
+fVrshp = reshape(uTotal, [2 265]);
 b.mesh = obj.mesh;
 b.fValues = fVrshp';
 gidPrint = P1Function(b);
