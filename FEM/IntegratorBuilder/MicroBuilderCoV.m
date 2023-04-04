@@ -86,7 +86,11 @@ classdef MicroBuilderCoV < handle
             % implement new GlobalDofSetter class
             [RHSDir, RHSDirPer] = obj.ConditionSetter.setDirichletRhs();
             fullRHS   = [der1Rhs; perVector; RHSDirPer; RHSDir];
-
+%             if obj.vstrain(3) == 1
+%                 sDer = size(der1Rhs, 1);
+%                 sPer = size(perVector, 1);
+%                 fullRHS(sDer+sPer+1) = [];
+%             end
 %             PerDirRhs = [-1; -1];
 %             DirRhs = zeros(6,1);
 %             fullRHS   = [der1Rhs; perVector; PerDirRhs; DirRhs];
@@ -154,6 +158,10 @@ classdef MicroBuilderCoV < handle
                 Ct(positionCt, [masterDOF slaveDOF]) = [1 -1];
             end
             Ct(nEqperType*3+1:end, :) = [CtPerDir; CtDir];
+%             if obj.vstrain(3) == 1
+%             obj.nConstraints = size(CtDir, 1) + nEqperType*3; 
+%             Ct(nEqperType*3+1,:) = [];
+%             end
         end
 
         function [L, LDir, stressHomog] = computeStressHomog(obj, sol)
@@ -197,7 +205,12 @@ classdef MicroBuilderCoV < handle
                 obj.vstrain(3)/2 obj.vstrain(2)];
             uTotal = zeros(obj.sizeK, 1);
             for i=1:nel
-                uTotal([2*i-1 2*i], 1) = strainM*coords(:, i);
+                if i == 208
+                    coordP = coords(:, i);
+                    uTotal([2*i-1 2*i], 1) = strainM*coordP;
+                end
+                coordP = coords(:, i);
+                uTotal([2*i-1 2*i], 1) = strainM*coordP;
             end
             fluct = u - uTotal;
         end

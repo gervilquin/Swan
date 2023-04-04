@@ -16,7 +16,9 @@ figure
 obj.mesh.plot;
 xlabel('x');
 ylabel('y');
-plot(coordsL(:,1), coordsL(:,2), '+')
+% plot(coordsL(:,1), coordsL(:,2), '+')
+plot(obj.mesh.coord([2, 3, 207, 208],1), obj.mesh.coord([2, 3, 207, 208],2), '+')
+
 
 z.coord = coordsL;
 z.connec(:,1) = 1:size(coordsL,1)-1;

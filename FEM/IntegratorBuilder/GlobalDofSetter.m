@@ -77,6 +77,8 @@ classdef GlobalDofSetter < handle
                 CtPerDir = zeros(2, obj.sizeK);
                 CtDir(1,LDNode*2-1) = 1;
                 CtDir(2,LDNode*2) = 1;
+                CtDir(3,RUNode*2-1) = 1;
+                CtDir(4,RUNode*2) = 1;
 %                 CtDir(3,LUNode*2) = 1;
 %                 CtDir(4,RDNode*2-1) = 1;
 %                 CtPerDir(1,[LDNode*2-1, LUNode*2-1]) = [1 -1];
@@ -93,8 +95,10 @@ classdef GlobalDofSetter < handle
                 RHSDir = zeros(6, 1);
                 RHSDirPer = -ones(2,1);                 
             else
-                RHSDir = zeros(2, 1);
-                RHSDirPer = -ones(2,1);                      
+                RHSDir = zeros(4, 1);
+                RHSDir(3) = 0.5;
+                RHSDir(4) = 0.5;
+                RHSDirPer = -ones(2,1);      
             end
         end
     
