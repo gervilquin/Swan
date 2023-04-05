@@ -1,6 +1,5 @@
 classdef GlobalDofSetter < handle
 
-
     properties (Access = private)
         mesh
         dirichletDofs
@@ -79,12 +78,6 @@ classdef GlobalDofSetter < handle
                 CtDir(2,LDNode*2) = 1;
                 CtDir(3,RUNode*2-1) = 1;
                 CtDir(4,RUNode*2) = 1;
-%                 CtDir(3,LUNode*2) = 1;
-%                 CtDir(4,RDNode*2-1) = 1;
-%                 CtPerDir(1,[LDNode*2-1, LUNode*2-1]) = [1 -1];
-%                 CtPerDir(2,[LUNode*2, RDNode*2]) = [1 -1];
-%                 CtPerDir(3,[RDNode*2-1, RUNode*2-1]) = [1 -1];
-%                 CtPerDir(4,[LUNode*2, RUNode*2]) = [1 -1];
                 CtPerDir(1,[LDNode*2, RDNode*2, LDNode*2-1, LUNode*2-1]) = [1 -1 1 -1];
                 CtPerDir(2,[LUNode*2, RUNode*2, RDNode*2-1, RUNode*2-1]) = [1 -1 1 -1];
             end

@@ -1,5 +1,4 @@
 classdef MicroBuilder < handle
-% solves micro structure obtaining fluctuations as a result
 
     properties (Access = private)
         LHS
@@ -85,15 +84,6 @@ classdef MicroBuilder < handle
             Ct(obj.sizePer+1:end, :) = CtDir;
         end
 
-%         function [CtDir, sizeDir] = computeDirichletCond(obj)
-%             dirDOFs    = obj.bc.dirichlet;
-%             sizeDir = size(dirDOFs, 1);
-%             CtDir = zeros(sizeDir, obj.sizeK);
-%             for i = 1:sizeDir
-%                 CtDir(i,dirDOFs(i)) = 1; 
-%             end
-%         end
-
         function [L,  LDir, stressHomog] = computeStressHomog(obj, sol)
             nEqperType = obj.sizePer/4;
             sigmaX = 0;
@@ -103,19 +93,15 @@ classdef MicroBuilder < handle
             d2  = obj.sizeK + obj.sizePer;
             L   = sol(d1:d2);
             LDir = sol(d2+1:end);
-            % first 8: xx
             for i = 1:nEqperType
                 sigmaX = sigmaX + L(i);
             end
-            % second 8: xy
             for i = nEqperType+1:2*nEqperType
                 tauXY = tauXY + L(i);
             end
-            % third 8: xy
             for i = 2*nEqperType+1:3*nEqperType
                 tauXY = tauXY + L(i);
             end
-            % last 8: yy
             for i = 3*nEqperType+1:4*nEqperType
                 sigmaY = sigmaY + L(i);
             end
@@ -134,12 +120,6 @@ classdef MicroBuilder < handle
             for i=1:nel
                 uTotal([2*i-1 2*i], 1) = strainM*coords(:, i);
             end
-            % add fluctuations (initial value pending)
-%             uTotal = uTotal + u;
-%             av = (minU+maxU)/2;
-%             uTotal = uTotal - av;
-            % fix dirichlet displacements
-%             uTotal(obj.bc.dirichlet) = 0;
         end
 
     end
