@@ -19,12 +19,12 @@ classdef MicroBuilder < handle
         end
 
         function [u, stressHomog] = solveSystem(obj)
-            defLHS = obj.createLHS();
-            defRHS = obj.createRHS();
-            sol = obj.solver.solve(defLHS, defRHS);
-            u   = sol(1:obj.sizeK, 1);
+            defLHS                 = obj.createLHS();
+            defRHS                 = obj.createRHS();
+            sol                    = obj.solver.solve(defLHS, defRHS);
+            u                      = sol(1:obj.sizeK, 1);
             [L, LDir, stressHomog] = obj.computeStressHomog(sol);
-            uTotal = obj.computeTotalDisplacements(u);
+            uTotal                 = obj.computeTotalDisplacements(u);
         end
 
     end
@@ -53,18 +53,18 @@ classdef MicroBuilder < handle
         end
 
         function fullLHS = createGeneralMatrix(obj, Ct)
-            C = Ct';
-            nC = obj.nConstraints;
-            Z  = zeros(nC);
-            Km = obj.LHS;
+            C       = Ct';
+            nC      = obj.nConstraints;
+            Z       = zeros(nC);
+            Km      = obj.LHS;
             fullLHS = [Km C; C' Z];
         end
 
         function fullRHS = createGeneralVector(obj)
-            nPerDofs = size(obj.bc.periodic_constrained, 1);
+            nPerDofs  = size(obj.bc.periodic_constrained, 1);
             perVector = zeros(nPerDofs, 1);
-            uD = obj.bc.dirichlet_values;
-            fullRHS = [obj.RHS; perVector; uD]; 
+            uD        = obj.bc.dirichlet_values;
+            fullRHS   = [obj.RHS; perVector; uD]; 
         end
 
         function Ct = createConstraintMatrix(obj)
@@ -89,10 +89,10 @@ classdef MicroBuilder < handle
             sigmaX = 0;
             sigmaY = 0;
             tauXY  = 0;
-            d1  = obj.sizeK+1;
-            d2  = obj.sizeK + obj.sizePer;
-            L   = sol(d1:d2);
-            LDir = sol(d2+1:end);
+            d1     = obj.sizeK+1;
+            d2     = obj.sizeK + obj.sizePer;
+            L      = sol(d1:d2);
+            LDir   = sol(d2+1:end);
             for i = 1:nEqperType
                 sigmaX = sigmaX + L(i);
             end
@@ -112,11 +112,11 @@ classdef MicroBuilder < handle
         end
 
         function uTotal = computeTotalDisplacements(obj, u)
-            coords = obj.mesh.coord';
-            nel = size(coords, 2);
+            coords  = obj.mesh.coord';
+            nel     = size(coords, 2);
             strainM = [obj.vstrain(1) obj.vstrain(3); 
                 obj.vstrain(3) obj.vstrain(2)];
-            uTotal = zeros(obj.sizeK, 1);
+            uTotal  = zeros(obj.sizeK, 1);
             for i=1:nel
                 uTotal([2*i-1 2*i], 1) = strainM*coords(:, i);
             end

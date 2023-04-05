@@ -1,4 +1,4 @@
-classdef GlobalDofSetter < handle
+classdef MicroDirichletSetter < handle
 
     properties (Access = private)
         mesh
@@ -83,7 +83,7 @@ classdef GlobalDofSetter < handle
             end
         end
 
-        function [RHSDir, RHSDirPer] = computeRHS(obj)
+        function [RHSDir, RHSDirPer] = computeDirRHS(obj)
             if obj.vstrain(1) == 1 || obj.vstrain(2) == 1
                 RHSDir = zeros(6, 1);
                 RHSDirPer = -ones(2,1);                 
