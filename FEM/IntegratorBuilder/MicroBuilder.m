@@ -7,15 +7,14 @@ classdef MicroBuilder < handle
         sizeK
         nConstraints
         solver
-        scale
         sizePer
         mesh
         vstrain
     end
 
     methods (Access = public)
-        function createBuilder(obj, s)
-            obj.init(s);
+        function createBuilder(obj, cParams)
+            obj.init(cParams);
         end
 
         function [u, stressHomog] = solveSystem(obj)
@@ -36,7 +35,6 @@ classdef MicroBuilder < handle
             obj.RHS     = cParams.RHS;
             obj.sizeK   = size(cParams.LHS, 1);
             obj.solver  = cParams.solver;
-            obj.scale   = cParams.scale;
             obj.mesh    = cParams.mesh;
             obj.vstrain = cParams.vstrain;
             perDOFslave = obj.bc.periodic_constrained;
@@ -71,14 +69,14 @@ classdef MicroBuilder < handle
             s.dirDOFs        = obj.bc.dirichlet;
             s.sizeK          = obj.sizeK;
             DirComputer      = DirichletComputer(s);
-            [CtDir, sizeDir] = DirComputer.compute();
+            [CtDir, sizeDir] = DirComputer.computeDirCond();
             perDOFslave      = obj.bc.periodic_constrained;
             perDOFmaster     = obj.bc.periodic_free;
             obj.nConstraints = sizeDir + obj.sizePer; 
             Ct               = zeros(obj.nConstraints, obj.sizeK);
             for i = 1:obj.sizePer
-                masterNode = perDOFmaster(i);
-                slaveNode = perDOFslave(i);
+                masterNode                    = perDOFmaster(i);
+                slaveNode                     = perDOFslave(i);
                 Ct(i, [masterNode slaveNode]) = [1 -1];
             end
             Ct(obj.sizePer+1:end, :) = CtDir;
@@ -86,13 +84,13 @@ classdef MicroBuilder < handle
 
         function [L,  LDir, stressHomog] = computeStressHomog(obj, sol)
             nEqperType = obj.sizePer/4;
-            sigmaX = 0;
-            sigmaY = 0;
-            tauXY  = 0;
-            d1     = obj.sizeK+1;
-            d2     = obj.sizeK + obj.sizePer;
-            L      = sol(d1:d2);
-            LDir   = sol(d2+1:end);
+            sigmaX     = 0;
+            sigmaY     = 0;
+            tauXY      = 0;
+            d1         = obj.sizeK+1;
+            d2         = obj.sizeK + obj.sizePer;
+            L          = sol(d1:d2);
+            LDir       = sol(d2+1:end);
             for i = 1:nEqperType
                 sigmaX = sigmaX + L(i);
             end
@@ -105,9 +103,9 @@ classdef MicroBuilder < handle
             for i = 3*nEqperType+1:4*nEqperType
                 sigmaY = sigmaY + L(i);
             end
-            sigmaX = sigmaX + LDir(1) + LDir(5);
-            sigmaY = sigmaY + LDir(2) + LDir(4);
-            tauXY = (tauXY + LDir(6) + LDir(3) - LDir(7) - LDir(8))/2;
+            sigmaX      = sigmaX + LDir(1) + LDir(5);
+            sigmaY      = sigmaY + LDir(2) + LDir(4);
+            tauXY       = (tauXY + LDir(6) + LDir(3) - LDir(7) - LDir(8))/2;
             stressHomog = [sigmaX; sigmaY; tauXY];
         end
 
@@ -115,7 +113,7 @@ classdef MicroBuilder < handle
             coords  = obj.mesh.coord';
             nel     = size(coords, 2);
             strainM = [obj.vstrain(1) obj.vstrain(3); 
-                obj.vstrain(3) obj.vstrain(2)];
+                        obj.vstrain(3) obj.vstrain(2)];
             uTotal  = zeros(obj.sizeK, 1);
             for i=1:nel
                 uTotal([2*i-1 2*i], 1) = strainM*coords(:, i);

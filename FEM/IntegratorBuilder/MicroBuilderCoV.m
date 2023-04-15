@@ -24,7 +24,7 @@ classdef MicroBuilderCoV < handle
             sol         = obj.solver.solve(defLHS, defRHS);
             u           = sol(1:obj.sizeK, 1);
             [L, LDir, stressHomog] = obj.computeStressHomog(sol);
-            fluc = obj.computeTotalDisplacements(u);
+            fluc = obj.computeFluctuations(u);
         end
 
     end
@@ -90,19 +90,14 @@ classdef MicroBuilderCoV < handle
                 + nEqperType*3; 
             Ct                = zeros(nEqperType*3+size(CtDir, 1)+ ...
                 size(CtPerDir, 1), obj.sizeK);
-            pX                = zeros(nEqperType, 1);
-            pY                = zeros(nEqperType, 1);
-            pXY               = zeros(nEqperType, 1); 
             for i = 1:nEqperType
                 masterDOF                   = perDOFmaster(i);
                 slaveDOF                    = perDOFslave(i);
                 Ct(i, [masterDOF slaveDOF]) = [1 -1];
-                pX(i)                       = i;
             end
             for i = nEqperType+1:2*nEqperType
                 masterDOF                   = perDOFmaster(i);
                 slaveDOF                    = perDOFslave(i);
-                pXY(i-nEqperType)           = i;
                 Ct(i, [masterDOF slaveDOF]) = [1 -1];
             end
             for i = 2*nEqperType+1:3*nEqperType
@@ -115,7 +110,6 @@ classdef MicroBuilderCoV < handle
                 masterDOF                            = perDOFmaster(i);
                 slaveDOF                             = perDOFslave(i);
                 positionCt                           = i-nEqperType;
-                pY(i-3*nEqperType)                   = positionCt;
                 Ct(positionCt, [masterDOF slaveDOF]) = [1 -1];
             end
             Ct(nEqperType*3+1:end, :) = [CtPerDir; CtDir];
@@ -152,7 +146,7 @@ classdef MicroBuilderCoV < handle
             stressHomog = [Lx; Ly; Lxy];
         end
 
-        function fluct = computeTotalDisplacements(obj, u)
+        function fluct = computeFluctuations(obj, u)
             coords  = obj.mesh.coord';
             nel     = size(coords, 2);
             strainM = [obj.vstrain(1) obj.vstrain(3)/2; 

@@ -10,7 +10,7 @@ classdef DirichletComputer < handle
             obj.init(cParams);
         end
 
-        function [CtDir, sizeDir] = compute(obj)
+        function [CtDir, sizeDir] = computeDirCond(obj)
             [CtDir, sizeDir] = obj.buildDirichletLHS();
         end
 

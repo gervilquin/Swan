@@ -48,8 +48,8 @@ classdef ReducedBuilder < handle
         function R = computeReactions(obj)
             boundaryCond  = obj.bc;
             K             = obj.lhs;
-            dirich  = boundaryCond.dirichlet;
-            dirichV = boundaryCond.dirichlet_values;
+            dirich        = boundaryCond.dirichlet;
+            dirichV       = boundaryCond.dirichlet_values;
             if ~isempty(dirich)
                 R = -K(:,dirich)*dirichV;
             else
@@ -58,15 +58,15 @@ classdef ReducedBuilder < handle
         end
 
         function R = getReactions(obj, sol)
-            K = obj.lhs;
-            sizeK = size(K, 1);
-            R = zeros(sizeK, 1);
-            dirich  = obj.bc.dirichlet;
-            dirichV = obj.bc.dirichlet_values;
-            free = obj.bc.free;
-            dl = sol;
+            K         = obj.lhs;
+            sizeK     = size(K, 1);
+            R         = zeros(sizeK, 1);
+            dirich    = obj.bc.dirichlet;
+            dirichV   = obj.bc.dirichlet_values;
+            free      = obj.bc.free;
+            dl        = sol;
             R(dirich) = K(dirich, free)*dl + K(dirich, dirich)*dirichV;
-            R = R(dirich);
+            R         = R(dirich);
         end
 
     end

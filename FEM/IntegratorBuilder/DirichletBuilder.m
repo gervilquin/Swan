@@ -1,5 +1,4 @@
-classdef MatrixBuilder < handle
-    % Class to build matrix for direct solution without reductions. 
+classdef DirichletBuilder < handle
 
     properties (Access = private)
         LHS
@@ -12,12 +11,11 @@ classdef MatrixBuilder < handle
     end
 
     methods (Access = public)
-        function createBuilder(obj, s)
-            obj.init(s);
+        function createBuilder(obj, cParams)
+            obj.init(cParams);
         end
 
         function [u, R] = solveSystem(obj)
-            %Meter aqui el defRHS i el defLHS y hacerlos privados.
             defRHS = obj.createRHS();
             defLHS = obj.createLHS();
             sol = obj.solver.solve(defLHS, defRHS);
@@ -78,7 +76,7 @@ classdef MatrixBuilder < handle
                     s.dirDOFs        = obj.bc.dirichlet;
                     s.sizeK          = obj.sizeK;
                     DirComputer      = DirichletComputer(s);
-                    [CtDir, sizeDir] = DirComputer.compute();
+                    [CtDir, sizeDir] = DirComputer.computeDirCond();
 %                     [CtDir, sizeDir] = obj.computeDirichletCond();
                     perDOFslave      = obj.bc.periodic_constrained;
                     perDOFmaster     = obj.bc.periodic_free;
@@ -94,14 +92,14 @@ classdef MatrixBuilder < handle
             end
         end
 
-        function [CtDir, sizeDir] = computeDirichletCond(obj)
-            dirDOFs    = obj.bc.dirichlet;
-            sizeDir = size(dirDOFs, 1);
-            CtDir = zeros(sizeDir, obj.sizeK);
-            for i = 1:sizeDir
-                CtDir(i,dirDOFs(i)) = 1; 
-            end
-        end
+%         function [CtDir, sizeDir] = computeDirichletCond(obj)
+%             dirDOFs    = obj.bc.dirichlet;
+%             sizeDir = size(dirDOFs, 1);
+%             CtDir = zeros(sizeDir, obj.sizeK);
+%             for i = 1:sizeDir
+%                 CtDir(i,dirDOFs(i)) = 1; 
+%             end
+%         end
 
         function R = computeReactions(obj, sol)
             switch obj.scale

@@ -3,8 +3,8 @@ classdef IntegratorBuilder < handle
     methods (Static)
         function iType = create(cParams)
             switch cParams.btype
-                case 'MONOLITIC'
-                    iType = MatrixBuilder();
+                case 'MONOLITIC_DIR'
+                    iType = DirichletBuilder();
 
                 case 'REDUCED'
                     iType = ReducedBuilder();
