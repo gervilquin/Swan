@@ -113,7 +113,7 @@ allLp1f.print(a);
 
 % Print GiD results: Fluctuations
 b.filename = 'DisplacementsGiDFirst';
-fVrshp = reshape(uTotal, [2 265]);
+fVrshp = reshape(u, [2 265]);
 b.mesh = obj.mesh;
 b.fValues = fVrshp';
 gidPrint = P1Function(b);

@@ -34,7 +34,7 @@ classdef DirichletBuilder < handle
             obj.sizeK  = size(cParams.LHS, 1);
             obj.solver = cParams.solver;
             obj.scale  = cParams.scale;
-            obj.scale  = cParams.mesh;
+            obj.mesh  = cParams.mesh;
         end
 
         function defLHS = createLHS(obj)
@@ -50,8 +50,8 @@ classdef DirichletBuilder < handle
             C       = Ct';
             nC      = obj.nConstraints;
             Z       = zeros(nC);
-            Km      = obj.LHS;
-            fullLHS = [Km C; C' Z];
+            K       = obj.LHS;
+            fullLHS = [K C; C' Z];
         end
 
         function fullRHS = createGeneralVector(obj)
