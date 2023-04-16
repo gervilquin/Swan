@@ -120,4 +120,14 @@ gidPrint = P1Function(b);
 gidPrint.print(b);
 
 
+% PRINT MACRO RESULTS 
+b.filename = 'DisplacementsGiDFirst';
+fVrshp = reshape(u, [2 13]);
+b.mesh = obj.mesh;
+b.fValues = fVrshp';
+gidPrint = P1Function(b);
+gidPrint.print(b);
+
+
+
 

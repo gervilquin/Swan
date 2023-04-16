@@ -13,7 +13,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             s.computerType     = 'FEM';
             s.testName         = triangle;
             s.variablesToStore = {'d_u'};
-            s.testSolverType   = 'MONOLITIC';
+            s.testSolverType   = 'MONOLITIC_DIR';
             test = PrecomputedVariableTest(s);
             err = test.computeError();
             tol = 1e-6;
@@ -24,7 +24,7 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
             s.computerType     = 'FEM';
             s.testName         = [triangle '_non_null'];
             s.variablesToStore = {'d_u'};
-            s.testSolverType   = 'MONOLITIC';
+            s.testSolverType   = 'MONOLITIC_DIR';
             s.testResultsName  = [triangle '_non_null'];
             test = PrecomputedVariableTest(s);
             err = test.computeError();
