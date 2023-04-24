@@ -1,6 +1,6 @@
 classdef MicroDirichletSetter < handle
 
-    properties (Access = private)
+    properties (Access = public)
         mesh
         dirichletDofs
         vstrain
@@ -28,7 +28,7 @@ classdef MicroDirichletSetter < handle
         function init(obj, cParams)
             obj.mesh          = cParams.mesh;
             obj.dirichletDofs = cParams.dirDOFs;
-            obj.sizeK         = cParams.sizeK;
+            obj.sizeK         = cParams.ndofs;
             obj.vstrain       = cParams.vstrain;
         end
 

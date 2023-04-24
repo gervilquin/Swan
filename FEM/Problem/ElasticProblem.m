@@ -20,9 +20,12 @@ classdef ElasticProblem < handle
         ptype
         inputBC
         
+
     end
 
     properties (Access = protected)
+        solType
+        solMode
         quadrature
         material
         btype
@@ -103,7 +106,9 @@ classdef ElasticProblem < handle
             obj.pdim        = cParams.dim;
             obj.ptype       = cParams.type;
             obj.inputBC     = cParams.bc;
-            obj.btype       = cParams.builderType;
+%             obj.btype       = cParams.builderType;
+            obj.solMode = cParams.solMode;
+            obj.solType = cParams.solType;                        
             if isprop(cParams, 'interpolationType')
                 obj.interpolationType = cParams.interpolationType;
             else
@@ -145,8 +150,14 @@ classdef ElasticProblem < handle
             s.bc    = {bc};
             s.ndofs = obj.displacementField.dim.ndofs;
             s.btype = obj.btype; % builder type
+            s.solMode = obj.solMode;
+            s.solType = obj.solType;
+            if isprop(obj, 'vstrain')
+                s.vstrain = obj.vstrain;
+            end
             bc = BoundaryConditions(s);
             bc.compute();
+            %MOVER a computeDisplacements para que vstrain esté definido.
             obj.boundaryConditions = bc;
         end
 
@@ -178,6 +189,7 @@ classdef ElasticProblem < handle
             if isprop(obj, 'vstrain')
                 s.vstrain = obj.vstrain;
             end
+            
             RHSint = RHSintegrator.create(s);
             rhs = RHSint.compute();
             obj.variables.fext = rhs;
@@ -195,13 +207,37 @@ classdef ElasticProblem < handle
             s.scale       = obj.scale;
             s.mesh        = obj.mesh;
             s.dim         = obj.displacementField.dim;
+            
+            % ConstraintSolver
+            s.RHS         = obj.RHS;
+            s.bc          = obj.boundaryConditions;
+            s.K           = obj.stiffnessMatrix;
+            s.solver      = obj.solver;
             if isprop(obj, 'vstrain')
                 s.vstrain = obj.vstrain;
             end
-            builder.createBuilder(s);
-            [u,R] = builder.solveSystem();
+            
+%             if obj.solType == 'MONOLITIC' 
+%                 if obj.solMode == 'DISP'
+%                     bc.computeMonoliticMicroConditionDisp(obj.vstrain);
+%                 end
+%             end
+            s.solMode = obj.solMode;
+            s.solType = obj.solType;
+
+            BoundaryCondSolver = ConstraintSolver(s);
+            GlobalLHS = BoundaryCondSolver.assembleGlobalLHS;
+            GlobalRHS = BoundaryCondSolver.assembleGlobalRHS;
+            [u, L]  =  BoundaryCondSolver.solveSystem(GlobalLHS, GlobalRHS);
             obj.variables.d_u = u;
-            obj.variables.React = R;
+            obj.variables.LangMult = L;
+            %%%%%
+
+
+% %             builder.createBuilder(s);
+%             [u,R] = builder.solveSystem();
+%             obj.variables.d_u = u;
+%             obj.variables.React = R;
             z.mesh   = obj.mesh;
             z.fValues = reshape(u,[obj.mesh.ndim,obj.mesh.nnodes])';
             uFeFun = P1Function(z);

@@ -29,8 +29,8 @@ classdef ElasticProblemMicro < ElasticProblem
             nstre = obj.material.nstre;
             basis = diag(ones(nstre,1));
             Ch = zeros(nstre,nstre);
-            switch obj.btype 
-                case {'REDUCED'}
+%             switch obj.btype 
+%                 case {'REDUCED'}
                     nelem = size(obj.material.C,3);
                     npnod = obj.displacementField.dim.nnodes;
                     ndofs = npnod*obj.displacementField.dim.ndimf;
@@ -53,15 +53,15 @@ classdef ElasticProblemMicro < ElasticProblem
                     obj.variables.tstress = tStrss;
                     obj.variables.tdisp   = tDisp;
 
-                case {'MONOLITIC_MICRO_CoV', 'MONOLITIC_MICRO'}
-                    basis = diag(ones(nstre,1));
-                    for istre=1:nstre
-                        obj.vstrain = basis(istre,:);
-                        obj.solve();
-                        Ch(:, istre) = obj.variables.React;
-                    end
-                    obj.variables.Chomog = Ch;
-            end
+%                 case {'MONOLITIC_MICRO_CoV', 'MONOLITIC_MICRO'}
+%                     basis = diag(ones(nstre,1));
+%                     for istre=1:nstre
+%                         obj.vstrain = basis(istre,:);
+%                         obj.solve();
+%                         Ch(:, istre) = obj.variables.React;
+%                     end
+%                     obj.variables.Chomog = Ch;
+%             end
         end
 
         function [fun, funNames] = getFunsToPlot(obj)

@@ -9,6 +9,8 @@ classdef PrecomputedVariableTest < handle
         computerType
         testResultsName
         solverType
+        solType
+        solMode
     end
 
     methods (Access = public)
@@ -55,7 +57,9 @@ classdef PrecomputedVariableTest < handle
             obj.variablesToStore = cParams.variablesToStore;
             obj.computerType     = cParams.computerType;
             obj.testResultsName  = cParams.testName;
-            obj.solverType       = cParams.testSolverType;
+%             obj.solverType       = cParams.testSolverType;
+            obj.solType = cParams.solType;
+            obj.solMode = cParams.solMode;
             if isfield(cParams, 'testResultsName')
                 obj.testResultsName = cParams.testResultsName;
             end
@@ -63,7 +67,9 @@ classdef PrecomputedVariableTest < handle
 
         function computeVariable(obj, s)
             s.testName = obj.testName;
-            s.builderType = obj.solverType;
+            s.solType = obj.solType;
+            s.solMode = obj.solMode;
+%             s.builderType = obj.solverType;
             testComputer = TestComputer.create(obj.computerType, s);
             testComputer.compute();
             obj.computation = testComputer.computation;

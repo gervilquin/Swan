@@ -11,11 +11,15 @@ classdef BoundaryConditions < handle
         neumann
         neumann_values
         integratorBuilder
+        conditionSetter
+        mesh
+        dim
+        ndofs
     end
 
     properties (Access = private)
-        dim
-        ndofs
+        
+        
         scale
         dirichletInput
         pointloadInput
@@ -35,6 +39,14 @@ classdef BoundaryConditions < handle
             obj.neumann          = neuID;
             obj.neumann_values   = neuVals;
             obj.free             = obj.computeFreeDOF();
+        end
+
+        function computeMonoliticMicroConditionDisp(obj, vstrain)
+            s.ndofs = obj.ndofs;
+            s.mesh = obj.mesh;
+            s.dirDOFs = obj.dirichlet;
+            s.vstrain = vstrain;
+            obj.conditionSetter = MicroDirichletSetter(s);
         end
 
         function red = fullToReducedMatrix(obj, mat)
@@ -79,7 +91,16 @@ classdef BoundaryConditions < handle
             obj.ndofs          = cParams.ndofs; % Stokes
             obj.initPeriodicMasterSlave(cParams);
             obj.initDirichletInput(cParams);
-            obj.integratorBuilder = IntegratorBuilder.create(cParams);
+%             obj.integratorBuilder = IntegratorBuilder.create(cParams);
+            obj.mesh = cParams.mesh;
+%             if cParams.solType == 'MONOLITIC' 
+%                 if cParams.solMode == 'DISP'
+%                     s.ndofs = obj.ndofs;
+%                     s.mesh = obj.mesh;
+%                     obj.conditionSetter = MicroDirichletSetter(s);
+%                 end
+%             end
+                
         end
 
         function initDirichletInput(obj, s)
