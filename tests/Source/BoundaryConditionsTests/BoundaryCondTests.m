@@ -36,44 +36,35 @@ classdef BoundaryCondTests < handle & matlab.unittest.TestCase
 
     methods (Test, TestTags = {'Monolitic', 'Micro'})
 
-%         function testMicroReduced(testCase, micro)
-%             s.testName = micro;
-%             s.variablesToStore = {'Chomog'};
-%             s.computerType = 'MICRO';
-%             s.testSolverType = 'REDUCED';
-%             test = PrecomputedVariableTest(s);
-%             err = test.computeError();
-%             tol = 1e-5;
-%             testCase.verifyLessThanOrEqual(err, tol)
-%         end
-%         
-%         function testMicroFluc(testCase, micro)
-%             s.testName = micro;
-%             s.variablesToStore = {'Chomog'};
-%             s.computerType = 'MICRO';
-%             s.testSolverType   = 'MONOLITIC_MICRO';
-%             test = PrecomputedVariableTest(s);
-%             err = test.computeError();
-%             tol = 1e-5;
-%             testCase.verifyLessThanOrEqual(err, tol)
-%         end
-% 
-%         function testMicroChOV(testCase, micro)
-%             s.testName = micro;
-%             s.variablesToStore = {'Chomog'};
-%             s.computerType = 'MICRO';
-%             s.testSolverType   = 'MONOLITIC_MICRO_CoV';
-%             test = PrecomputedVariableTest(s);
-%             err = test.computeError();
-%             tol = 1e-4;
-%             testCase.verifyLessThanOrEqual(err, tol)
-%         end
-        
-        function testMicroChOV2(testCase, micro)
+        function testMicroFlucReduced(testCase, micro)
             s.testName = micro;
             s.variablesToStore = {'Chomog'};
             s.computerType = 'MICRO';
             s.solType   = 'REDUCED';
+            s.solMode   = 'FLUC';
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-4;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+        function testMicroDispMonolitic(testCase, micro)
+            s.testName = micro;
+            s.variablesToStore = {'Chomog'};
+            s.computerType = 'MICRO';
+            s.solType   = 'MONOLITIC';
+            s.solMode   = 'DISP';
+            test = PrecomputedVariableTest(s);
+            err = test.computeError();
+            tol = 1e-4;
+            testCase.verifyLessThanOrEqual(err, tol)
+        end
+
+        function testMicroFlucMonolitic(testCase, micro)
+            s.testName = micro;
+            s.variablesToStore = {'Chomog'};
+            s.computerType = 'MICRO';
+            s.solType   = 'MONOLITIC';
             s.solMode   = 'FLUC';
             test = PrecomputedVariableTest(s);
             err = test.computeError();

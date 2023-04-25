@@ -217,11 +217,10 @@ classdef ElasticProblem < handle
                 s.vstrain = obj.vstrain;
             end
             
-%             if obj.solType == 'MONOLITIC' 
-%                 if obj.solMode == 'DISP'
-%                     bc.computeMonoliticMicroConditionDisp(obj.vstrain);
-%                 end
-%             end
+            if strcmp(obj.solType, 'MONOLITIC') && strcmp(obj.solMode, 'DISP')  
+                    bc.computeMonoliticMicroConditionDisp(obj.vstrain);
+            end
+
             s.solMode = obj.solMode;
             s.solType = obj.solType;
 

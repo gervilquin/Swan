@@ -32,14 +32,13 @@ classdef MicroComputer < handle
                     femSolver.computeStressHomog();
                     obj.computation = femSolver;
                 case 'FLUC'
+                    femSolver = ElasticProblemFluc(s);
                     switch s.solType
                         case 'REDUCED'
-                            femSolver = ElasticProblemMicro(s);
                             femSolver.computeChomog();
                             obj.computation = femSolver;
                         case 'MONOLITIC'
-                            femSolver = ElasticProblemFluc(s);
-                            femSolver.computeChomog();
+                            femSolver.computeLagrangeMultSum();
                             obj.computation = femSolver;
                     end
 
