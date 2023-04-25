@@ -213,7 +213,7 @@ classdef ElasticProblem < handle
             s.bc          = obj.boundaryConditions;
             s.K           = obj.stiffnessMatrix;
             s.solver      = obj.solver;
-            if isprop(obj, 'vstrain')
+            if ~isempty(obj.vstrain)
                 s.vstrain = obj.vstrain;
             end
             

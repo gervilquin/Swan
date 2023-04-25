@@ -84,7 +84,7 @@ classdef ConstraintSolver < handle
         function Ct = createConstraintMatrix(obj) %Disp
             switch obj.solMode
                 case 'DISP'
-                    if isprop(obj, 'vstrain')
+                    if ~isempty(obj.vstrain)
                         [CtDir, CtPerDir] = obj.bc.conditionSetter.setDirichletLhs();
                         perDOFmaster      = obj.bc.periodic_free;
                         perDOFslave       = obj.bc.periodic_constrained;
@@ -159,7 +159,7 @@ classdef ConstraintSolver < handle
 
             switch obj.solMode
                 case 'DISP'
-                    if isprop(obj, 'vstrain')
+                    if ~isempty(obj.vstrain)
                         nU           = size(obj.K, 1);
                         der1Rhs      = zeros(nU, 1);
                         nEqperType   = obj.sizePer/4;
@@ -176,7 +176,8 @@ classdef ConstraintSolver < handle
                         [RHSDir, RHSDirPer] = obj.bc.conditionSetter.setDirichletRhs();
                         fullRHS             = [der1Rhs; perVector; RHSDirPer; RHSDir];
                     else
-
+                        uD        = obj.bc.dirichlet_values;
+                        fullRHS   = [obj.RHS; uD];
                     end
 
                 case 'FLUC'
@@ -221,12 +222,12 @@ classdef ConstraintSolver < handle
 
         function Ared = reduceMatrixDirichlet(obj,A)
 %             fr = obj.computeGlobalFree();
-            fr = obj.free';
+            fr = obj.bc.free';
             Ared = A(fr,fr);
         end
         
         function b_red = reduceVectorDirichlet(obj,b)
-            fr = obj.free';
+            fr = obj.bc.free';
             b_red = b(fr);
         end
 
@@ -256,11 +257,11 @@ classdef ConstraintSolver < handle
         end
 
         function b = expandVectorDirichlet(obj,bfree)
-            dir = obj.dirichlet;
-            uD  = obj.dirichlet_values;
-            fr  = obj.free;
+            dir = obj.bc.dirichlet;
+            uD  = obj.bc.dirichlet_values;
+            fr  = obj.bc.free;
             nsteps = length(bfree(1,:));
-            ndof = sum(obj.ndofs);
+            ndof = sum(obj.bc.ndofs);
             uD = repmat(uD,1,nsteps);
             
             b = zeros(ndof,nsteps);
