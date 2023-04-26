@@ -28,9 +28,9 @@ classdef ConstraintSolver < handle
                 case 'MONOLITIC'
                     fullRHS = obj.createGeneralVector();
                 case 'REDUCED'
-                    R       = obj.computeReactions();
+                    R           = obj.computeReactions();
                     CompleteRHS = obj.RHS + R;
-                    fullRHS = obj.fullToReducedVector(CompleteRHS);
+                    fullRHS     = obj.fullToReducedVector(CompleteRHS);
             end
         end
 
@@ -69,7 +69,7 @@ classdef ConstraintSolver < handle
             obj.K      = cParams.LHS;
             obj.sizeK  = size(obj.K, 1);
             obj.RHS    = cParams.RHS;
-            obj.scale = cParams.scale;
+            obj.scale  = cParams.scale;
             if isfield(cParams, 'vstrain')
                 obj.vstrain = cParams.vstrain;
                 perDOFslave = obj.bc.periodic_constrained;
@@ -87,7 +87,7 @@ classdef ConstraintSolver < handle
             fullLHS = [Km C; C' Z];
         end
 
-        function Ct = createConstraintMatrix(obj) %Disp
+        function Ct = createConstraintMatrix(obj)
             switch obj.solMode
                 case 'DISP'
                     if ~isempty(obj.vstrain)
@@ -96,10 +96,9 @@ classdef ConstraintSolver < handle
                         perDOFslave       = obj.bc.periodic_constrained;
                         nEqperType        = obj.sizePer/4;
                         obj.nConstraints  = size(CtDir, 1)+ size(CtPerDir, 1) ...
-                            + nEqperType*3; 
-                        a = obj.sizeK;
+                                            + nEqperType*3; 
                         Ct                = zeros(nEqperType*3+size(CtDir, 1)+ ...
-                            size(CtPerDir, 1), obj.sizeK);
+                                            size(CtPerDir, 1), obj.sizeK);
                         for i = 1:nEqperType
                             masterDOF                   = perDOFmaster(i);
                             slaveDOF                    = perDOFslave(i);
@@ -227,7 +226,6 @@ classdef ConstraintSolver < handle
         end
 
         function Ared = reduceMatrixDirichlet(obj,A)
-%             fr = obj.computeGlobalFree();
             fr = obj.bc.free';
             Ared = A(fr,fr);
         end
@@ -245,10 +243,10 @@ classdef ConstraintSolver < handle
             vI = setdiff(vF,vP);
             
             A_II = A(vI,vI);
-            A_IP = A(vI,vP) + A(vI,vQ); %Grouping P and Q nodal values
-            A_PI = A(vP,vI) + A(vQ,vI); % Adding P  and Q equation
-            A_PP = A(vP,vP) + A(vP,vQ) + A(vQ,vP) + A(vQ,vQ); % Adding and grouping
-            
+            A_IP = A(vI,vP) + A(vI,vQ);
+            A_PI = A(vP,vI) + A(vQ,vI); 
+            A_PP = A(vP,vP) + A(vP,vQ) + A(vQ,vP) + A(vQ,vQ); 
+
             Ared = [A_II, A_IP; A_PI, A_PP];
         end
         
@@ -289,23 +287,21 @@ classdef ConstraintSolver < handle
         end
 
         function perDof = computePeriodicNodes(obj,perNodes)
-            nunkn = obj.bc.dim.ndimf;
-            nlib = size(perNodes,1);
-            perDof = zeros(nlib*nunkn,1);
+            nunkn   = obj.bc.dim.ndimf;
+            nlib    = size(perNodes,1);
+            perDof  = zeros(nlib*nunkn,1);
             for iunkn = 1:nunkn
-                indDof = nlib*(iunkn - 1) + [1:nlib];
+                indDof           = nlib*(iunkn - 1) + [1:nlib];
                 perDof(indDof,1) = obj.nod2dof(obj.bc.dim.ndimf, perNodes,iunkn);
             end
         end
 
         function idof = nod2dof(obj, ndimf, inode, iunkn)
-%             ndimf = obj.dim.ndimf;
-            idof(:,1)= ndimf*(inode - 1) + iunkn;
+            idof(:,1) = ndimf*(inode - 1) + iunkn;
         end
 
         function R = computeReactions(obj)
             boundaryCond  = obj.bc;
-%             K             = obj.lhs;
             dirich        = boundaryCond.dirichlet;
             dirichV       = boundaryCond.dirichlet_values;
             if ~isempty(dirich)
@@ -316,8 +312,6 @@ classdef ConstraintSolver < handle
         end
 
         function R = getReactions(obj, sol)
-%             K         = obj.lhs;
-%             sizeK     = size(obj.K, 1);
             R         = zeros(obj.sizeK, 1);
             dirich    = obj.bc.dirichlet;
             dirichV   = obj.bc.dirichlet_values;
