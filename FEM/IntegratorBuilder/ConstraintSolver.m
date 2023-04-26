@@ -28,7 +28,9 @@ classdef ConstraintSolver < handle
                 case 'MONOLITIC'
                     fullRHS = obj.createGeneralVector();
                 case 'REDUCED'
-                    fullRHS = fullToReducedVector(obj);
+                    R       = obj.computeReactions();
+                    CompleteRHS = obj.RHS + R;
+                    fullRHS = obj.fullToReducedVector(CompleteRHS);
             end
         end
 
@@ -47,7 +49,11 @@ classdef ConstraintSolver < handle
             switch obj.solType
                 case 'REDUCED'
                     u = reducedToFullVector(obj, sol);
-                    L = 0;
+                    if strcmp(obj.scale, 'MACRO')
+                        L = obj.getReactions(sol);
+                    else
+                        L = 0;
+                    end
                 case 'MONOLITIC'
                     u = sol(1:obj.sizeK, 1);
                     L = sol(obj.sizeK+1:end, 1);
@@ -202,12 +208,12 @@ classdef ConstraintSolver < handle
             end
         end
 
-        function red = fullToReducedVector(obj)
+        function red = fullToReducedVector(obj, vec)
             switch obj.scale
                 case 'MACRO'
-                    red = obj.reduceVectorDirichlet(obj.RHS);
+                    red = obj.reduceVectorDirichlet(vec);
                 case 'MICRO'
-                    red = obj.reduceVectorPeriodic(obj.RHS);
+                    red = obj.reduceVectorPeriodic(vec);
             end
         end
         
@@ -295,6 +301,30 @@ classdef ConstraintSolver < handle
         function idof = nod2dof(obj, ndimf, inode, iunkn)
 %             ndimf = obj.dim.ndimf;
             idof(:,1)= ndimf*(inode - 1) + iunkn;
+        end
+
+        function R = computeReactions(obj)
+            boundaryCond  = obj.bc;
+%             K             = obj.lhs;
+            dirich        = boundaryCond.dirichlet;
+            dirichV       = boundaryCond.dirichlet_values;
+            if ~isempty(dirich)
+                R = -obj.K(:,dirich)*dirichV;
+            else
+                R = zeros(sum(obj.bc.dim.ndofs(:)),1);
+            end
+        end
+
+        function R = getReactions(obj, sol)
+%             K         = obj.lhs;
+%             sizeK     = size(obj.K, 1);
+            R         = zeros(obj.sizeK, 1);
+            dirich    = obj.bc.dirichlet;
+            dirichV   = obj.bc.dirichlet_values;
+            free      = obj.bc.free;
+            dl        = sol;
+            R(dirich) = obj.K(dirich, free)*dl + obj.K(dirich, dirich)*dirichV;
+            R         = R(dirich);
         end
 
     end
