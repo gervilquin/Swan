@@ -15,6 +15,8 @@ classdef BoundaryConditions < handle
         mesh
         dim
         ndofs
+        solType
+        vstrain
     end
 
     properties (Access = private)
@@ -41,11 +43,11 @@ classdef BoundaryConditions < handle
             obj.free             = obj.computeFreeDOF();
         end
 
-        function computeMonoliticMicroConditionDisp(obj, vstrain)
+        function computeMonoliticMicroConditionDisp(obj)
             s.ndofs = obj.ndofs;
             s.mesh = obj.mesh;
             s.dirDOFs = obj.dirichlet;
-            s.vstrain = vstrain;
+            s.vstrain = obj.vstrain;
             obj.conditionSetter = MicroDirichletSetter(s);
         end
 
@@ -81,6 +83,10 @@ classdef BoundaryConditions < handle
             obj.neumann_values = neumannValues;
         end
 
+        function updateBC(obj, vstrain)
+            obj.vstrain = vstrain;
+        end
+
     end
 
     methods (Access = private)
@@ -100,7 +106,10 @@ classdef BoundaryConditions < handle
 %                     obj.conditionSetter = MicroDirichletSetter(s);
 %                 end
 %             end
-                
+            obj.solType = cParams.solType;
+            if isfield(cParams, 'vstrain')
+                obj.vstrain = cParams.vstrain;
+            end
         end
 
         function initDirichletInput(obj, s)

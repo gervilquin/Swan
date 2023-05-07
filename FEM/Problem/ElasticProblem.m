@@ -152,10 +152,11 @@ classdef ElasticProblem < handle
             s.btype = obj.btype; % builder type
             s.solMode = obj.solMode;
             s.solType = obj.solType;
-            if isprop(obj, 'vstrain')
+            if ~isempty(obj.vstrain)
                 s.vstrain = obj.vstrain;
             end
-            bc = BoundaryConditions(s);
+            f = BoundaryConditionsFactory();
+            bc = f.create(s);
             bc.compute();
             %MOVER a computeDisplacements para que vstrain esté definido.
             obj.boundaryConditions = bc;
@@ -213,25 +214,38 @@ classdef ElasticProblem < handle
             s.bc          = obj.boundaryConditions;
             s.K           = obj.stiffnessMatrix;
             s.solver      = obj.solver;
-            if ~isempty(obj.vstrain)
-                s.vstrain = obj.vstrain;
-            end
-            
-            if strcmp(obj.solType, 'MONOLITIC') && strcmp(obj.solMode, 'DISP')  
-                    bc.computeMonoliticMicroConditionDisp(obj.vstrain);
-            end
-
+%             if ~isempty(obj.vstrain)
+%                 s.vstrain = obj.vstrain;
+%             end
+%             
+%             if strcmp(obj.solType, 'MONOLITIC') && strcmp(obj.solMode, 'DISP')  
+%                     bc.computeMonoliticMicroConditionDisp(obj.vstrain);
+%             end
+% 
             s.solMode = obj.solMode;
             s.solType = obj.solType;
+% 
+%             BoundaryCondSolver = ConstraintSolverFactory(s);
+%             GlobalLHS = BoundaryCondSolver.assembleGlobalLHS;
+%             GlobalRHS = BoundaryCondSolver.assembleGlobalRHS;
+%             [u, L]  =  BoundaryCondSolver.solveSystem(GlobalLHS, GlobalRHS);
+%             obj.variables.d_u = u;
+%             obj.variables.LangMult = L;
+            %%%%%
+            
+            %REFORMULATED ARCHITECTURE
+            if strcmp(obj.solType, 'MONOLITIC') && strcmp(obj.solMode, 'DISP')  
+                    bc.computeMonoliticMicroConditionDisp();
+            end
 
-            BoundaryCondSolver = ConstraintSolver(s);
-            GlobalLHS = BoundaryCondSolver.assembleGlobalLHS;
-            GlobalRHS = BoundaryCondSolver.assembleGlobalRHS;
-            [u, L]  =  BoundaryCondSolver.solveSystem(GlobalLHS, GlobalRHS);
+            f = ConstraintSolverFactory();
+            BoundaryCondSolver = f.create(s);
+            [LHSMatrix, nConstraints] = bc.computeBoundaryCondLHS(s.LHS);
+            RHSMatrix = bc.computeBoundaryCondRHS(s);
+            [u, L] = BoundaryCondSolver.solveSystem(LHSMatrix, RHSMatrix, nConstraints);
             obj.variables.d_u = u;
             obj.variables.LangMult = L;
-            %%%%%
-
+            %%%%%%
 
 % %             builder.createBuilder(s);
 %             [u,R] = builder.solveSystem();

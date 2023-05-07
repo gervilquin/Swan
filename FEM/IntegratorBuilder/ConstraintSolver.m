@@ -26,7 +26,7 @@ classdef ConstraintSolver < handle
         function fullRHS = assembleGlobalRHS(obj)
             switch obj.solType 
                 case 'MONOLITIC'
-                    fullRHS = obj.createGeneralVector();
+                    fullRHS     = obj.createGeneralVector();
                 case 'REDUCED'
                     R           = obj.computeReactions();
                     CompleteRHS = obj.RHS + R;
@@ -296,10 +296,6 @@ classdef ConstraintSolver < handle
             end
         end
 
-        function idof = nod2dof(obj, ndimf, inode, iunkn)
-            idof(:,1) = ndimf*(inode - 1) + iunkn;
-        end
-
         function R = computeReactions(obj)
             boundaryCond  = obj.bc;
             dirich        = boundaryCond.dirichlet;
@@ -321,6 +317,13 @@ classdef ConstraintSolver < handle
             R         = R(dirich);
         end
 
+    end
+
+    methods (Static)
+        function idof = nod2dof(ndimf, inode, iunkn)
+            idof(:,1) = ndimf*(inode - 1) + iunkn;
+        end
+    
     end
 
 

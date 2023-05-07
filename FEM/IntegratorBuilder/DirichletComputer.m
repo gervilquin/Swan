@@ -19,7 +19,7 @@ classdef DirichletComputer < handle
     methods (Access = private)
         function init(obj, cParams)
             obj.dirDOFs = cParams.dirDOFs;
-            obj.sizeK   = cParams.sizeK;
+            obj.sizeK   = cParams.ndofs;
         end
 
         function [CtDir, sizeDir] = buildDirichletLHS(obj)

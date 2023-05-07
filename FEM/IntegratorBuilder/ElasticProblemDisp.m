@@ -13,6 +13,7 @@ classdef ElasticProblemDisp < ElasticProblem
 
             for istre = 1:nstre
                 obj.vstrain = basis(istre,:);
+                obj.boundaryConditions.updateBC(obj.vstrain);
                 obj.solve();
                 perDOFslave = obj.boundaryConditions.periodic_constrained;
                 obj.sizePer = size(perDOFslave, 1);
