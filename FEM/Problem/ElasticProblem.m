@@ -199,7 +199,7 @@ classdef ElasticProblem < handle
         
         function u = computeDisplacements(obj)
             bc            = obj.boundaryConditions;
-            builder       = bc.integratorBuilder;
+%             builder       = bc.integratorBuilder;
             s.LHS         = obj.stiffnessMatrix;
             s.RHS         = obj.RHS;
             s.bc          = bc;
@@ -222,7 +222,7 @@ classdef ElasticProblem < handle
 %                     bc.computeMonoliticMicroConditionDisp(obj.vstrain);
 %             end
 % 
-            s.solMode = obj.solMode;
+%             s.solMode = obj.solMode;
             s.solType = obj.solType;
 % 
 %             BoundaryCondSolver = ConstraintSolverFactory(s);

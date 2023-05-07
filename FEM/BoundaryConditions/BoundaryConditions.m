@@ -10,21 +10,22 @@ classdef BoundaryConditions < handle
         periodic_constrained
         neumann
         neumann_values
-        integratorBuilder
         conditionSetter
         mesh
         dim
         ndofs
         solType
-        vstrain
+        
     end
 
     properties (Access = private)
-        
-        
         scale
         dirichletInput
         pointloadInput
+    end
+
+    properties (Access = protected)
+        vstrain
     end
     
     methods (Access = public)
@@ -97,7 +98,6 @@ classdef BoundaryConditions < handle
             obj.ndofs          = cParams.ndofs; % Stokes
             obj.initPeriodicMasterSlave(cParams);
             obj.initDirichletInput(cParams);
-%             obj.integratorBuilder = IntegratorBuilder.create(cParams);
             obj.mesh = cParams.mesh;
 %             if cParams.solType == 'MONOLITIC' 
 %                 if cParams.solMode == 'DISP'

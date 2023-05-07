@@ -1,8 +1,7 @@
 classdef BoundaryConditionsDisp < BoundaryConditions
 
-    properties (Access = public)
+    properties (Access = private)
         nConstraints
-%         vstrain
         sizePer
     end
 
@@ -10,13 +9,13 @@ classdef BoundaryConditionsDisp < BoundaryConditions
         function [BCMatrix, nConst] = computeBoundaryCondLHS(obj, K)
             switch obj.solType 
                 case 'MONOLITIC'
-                    Ct      = obj.createConstraintMatrix();
+                    Ct       = obj.createConstraintMatrix();
                     BCMatrix = Ct;
-                    nConst = obj.nConstraints;
+                    nConst   = obj.nConstraints;
                 case 'REDUCED'
-                    fullLHS = obj.fullToReducedMatrix(K);
+                    fullLHS  = obj.fullToReducedMatrix(K);
                     BCMatrix = fullLHS;
-                    nConst = 0;
+                    nConst   = 0;
             end
         end
 

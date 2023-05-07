@@ -1,6 +1,6 @@
 classdef ConstraintSolverReduced < ConstraintSolverFactory
 
-    properties 
+    properties (Access = private)
         solver
         bc
         K
@@ -8,9 +8,6 @@ classdef ConstraintSolverReduced < ConstraintSolverFactory
         sizeK
         vstrain
         sizePer
-        nConstraints
-        solType
-        solMode
         scale
     end
 
@@ -44,8 +41,6 @@ classdef ConstraintSolverReduced < ConstraintSolverFactory
                 perDOFslave = obj.bc.periodic_constrained;
                 obj.sizePer = size(perDOFslave, 1);
             end 
-            obj.solType = cParams.solType;
-            obj.solMode = cParams.solMode;
         end
         
         function full = reducedToFullVector(obj, vec)
