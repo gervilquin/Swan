@@ -17,17 +17,12 @@ classdef ConstraintSolverMonolitic < ConstraintSolverFactory
 
         function [u, L] = solveSystem(obj, LHSMatrix, RHSMatrix, nConstraints)
             lhs = obj.createGeneralMatrix(LHSMatrix, nConstraints);
-            sol         = obj.solver.solve(lhs, RHSMatrix);
-            u = sol(1:obj.sizeK, 1);
-            L = sol(obj.sizeK+1:end, 1);
+            sol = obj.solver.solve(lhs, RHSMatrix);
+            u   = sol(1:obj.sizeK, 1);
+            L   = sol(obj.sizeK+1:end, 1);
          
         end
 
-        function outputArg = method1(obj,inputArg)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            outputArg = obj.Property1 + inputArg;
-        end
     end
 
     methods (Access = private)
@@ -53,6 +48,5 @@ classdef ConstraintSolverMonolitic < ConstraintSolverFactory
         end
 
     end
-
 
 end

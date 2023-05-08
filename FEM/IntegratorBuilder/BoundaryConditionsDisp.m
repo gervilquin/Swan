@@ -78,7 +78,7 @@ classdef BoundaryConditionsDisp < BoundaryConditions
 
         end
 
-        function fullRHS = createGeneralVector(obj, cParams) %Disp
+        function fullRHS = createGeneralVector(obj, cParams) 
             if ~isempty(obj.vstrain)
                 nU           = size(cParams.LHS, 1);
                 der1Rhs      = zeros(nU, 1);
